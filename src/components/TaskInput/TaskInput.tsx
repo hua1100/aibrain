@@ -1,0 +1,95 @@
+import { useState } from 'react';
+import { TaskItem } from './TaskItem';
+import { Button } from '@/components/common';
+import type { TaskInput as TaskInputType, CategoryType } from '@/types';
+import { TOTAL_TASKS } from '@/constants';
+
+interface TaskInputProps {
+  onSubmit: (tasks: TaskInputType[]) => void;
+  isLoading?: boolean;
+}
+
+const createEmptyTask = (category: CategoryType = 'personal'): TaskInputType => ({
+  name: '',
+  category,
+});
+
+const defaultCategories: CategoryType[] = [
+  'work', 'health', 'personal', 'learning',
+  'work', 'health', 'personal', 'learning',
+];
+
+export function TaskInput({ onSubmit, isLoading = false }: TaskInputProps) {
+  const [tasks, setTasks] = useState<TaskInputType[]>(
+    defaultCategories.map((cat) => createEmptyTask(cat))
+  );
+
+  const handleTaskChange = (index: number, task: TaskInputType) => {
+    const newTasks = [...tasks];
+    newTasks[index] = task;
+    setTasks(newTasks);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 驗證所有任務都有名稱
+    const validTasks = tasks.filter((t) => t.name.trim() !== '');
+    if (validTasks.length !== TOTAL_TASKS) {
+      alert(`請輸入完整 ${TOTAL_TASKS} 個任務`);
+      return;
+    }
+
+    onSubmit(tasks);
+  };
+
+  const filledCount = tasks.filter((t) => t.name.trim() !== '').length;
+  const isValid = filledCount === TOTAL_TASKS;
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* 進度提示 */}
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-600">
+          已填寫 <span className="font-semibold text-indigo-600">{filledCount}</span> / {TOTAL_TASKS} 個任務
+        </span>
+        {isValid && (
+          <span className="text-green-600 font-medium">✓ 可以建立</span>
+        )}
+      </div>
+
+      {/* 進度條 */}
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${(filledCount / TOTAL_TASKS) * 100}%` }}
+        />
+      </div>
+
+      {/* 任務列表 */}
+      <div className="space-y-3">
+        {tasks.map((task, index) => (
+          <TaskItem
+            key={index}
+            index={index}
+            task={task}
+            onChange={handleTaskChange}
+          />
+        ))}
+      </div>
+
+      {/* 提交按鈕 */}
+      <div className="pt-4">
+        <Button
+          type="submit"
+          disabled={!isValid}
+          isLoading={isLoading}
+          className="w-full"
+          size="lg"
+        >
+          建立今日 Bingo 板
+        </Button>
+      </div>
+    </form>
+  );
+}
