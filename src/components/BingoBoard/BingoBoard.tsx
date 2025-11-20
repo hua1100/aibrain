@@ -1,4 +1,5 @@
 import { BingoCell } from './BingoCell';
+import { LineOverlay } from './LineOverlay';
 import type { Task } from '@/types';
 
 interface BingoBoardProps {
@@ -18,7 +19,7 @@ export function BingoBoard({ tasks, onTaskClick, completedLines = [] }: BingoBoa
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="bingo-grid">
+      <div className="bingo-grid relative">
         {sortedTasks.map((task) => (
           <BingoCell
             key={task.id}
@@ -27,6 +28,9 @@ export function BingoBoard({ tasks, onTaskClick, completedLines = [] }: BingoBoa
             isHighlighted={isTaskInCompletedLine(task.position)}
           />
         ))}
+
+        {/* 連線疊加層 */}
+        <LineOverlay completedLines={completedLines} />
       </div>
     </div>
   );

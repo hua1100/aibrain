@@ -1,12 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BingoBoard } from '@/components/BingoBoard';
+import { LineComplete, Confetti } from '@/components/Celebration';
 import { Button } from '@/components/common';
 import { useBingoBoard } from '@/hooks/useBingoBoard';
+import { useSound } from '@/hooks/useSound';
+import { useLineDetection } from '@/hooks/useLineDetection';
 
 export function HomePage() {
   const navigate = useNavigate();
   const { board, isLoading, hasBoard, toggleTask } = useBingoBoard();
+  const { playLineComplete, playFullHouse, playTaskComplete, playTaskUncomplete } = useSound();
+
+  const [currentLine, setCurrentLine] = useState<number[] | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // 連線檢測
+  useLineDetection((line) => {
+    setCurrentLine(line);
+    playLineComplete();
+  });
 
   useEffect(() => {
     // 如果沒有今日 Bingo 板，導向建立頁面
@@ -14,6 +27,26 @@ export function HomePage() {
       navigate('/create');
     }
   }, [isLoading, hasBoard, navigate]);
+
+  useEffect(() => {
+    // 檢測全清
+    if (board?.status === 'completed' && !showConfetti) {
+      setShowConfetti(true);
+      playFullHouse();
+    }
+  }, [board?.status, showConfetti, playFullHouse]);
+
+  const handleTaskClick = (task: any) => {
+    // 播放音效
+    if (!task.isCompleted) {
+      playTaskComplete();
+    } else {
+      playTaskUncomplete();
+    }
+
+    // 切換任務狀態
+    toggleTask(task.id);
+  };
 
   if (isLoading) {
     return (
@@ -71,7 +104,7 @@ export function HomePage() {
         <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
           <BingoBoard
             tasks={board.tasks}
-            onTaskClick={(task) => toggleTask(task.id)}
+            onTaskClick={handleTaskClick}
             completedLines={board.completedLines}
           />
         </div>
@@ -104,6 +137,18 @@ export function HomePage() {
           </Link>
         </div>
       </div>
+
+      {/* 連線完成動畫 */}
+      <LineComplete
+        line={currentLine}
+        onComplete={() => setCurrentLine(null)}
+      />
+
+      {/* 全清慶祝動畫 */}
+      <Confetti
+        isActive={showConfetti}
+        onComplete={() => setShowConfetti(false)}
+      />
     </div>
   );
 }
