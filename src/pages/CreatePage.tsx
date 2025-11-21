@@ -1,15 +1,23 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TaskInput } from '@/components/TaskInput';
 import { useBoardStore } from '@/stores/boardStore';
 import type { TaskInput as TaskInputType } from '@/types';
+import { shuffleTaskPositions } from '@/utils/shuffleUtils';
 
 export function CreatePage() {
   const navigate = useNavigate();
   const { createBoard, isLoading } = useBoardStore();
+  const [enableShuffle, setEnableShuffle] = useState(false);
 
   const handleSubmit = async (tasks: TaskInputType[]) => {
     try {
-      await createBoard(tasks);
+      // 如果啟用隨機配置，洗牌任務順序
+      const orderedTasks = enableShuffle
+        ? shuffleTaskPositions(tasks).filter((t): t is TaskInputType => t !== null)
+        : tasks;
+
+      await createBoard(orderedTasks);
       navigate('/');
     } catch (error) {
       console.error('Failed to create board:', error);
@@ -27,6 +35,22 @@ export function CreatePage() {
           <p className="text-gray-600">
             輸入你今天要完成的 8 個任務
           </p>
+        </div>
+
+        {/* 隨機配置選項 */}
+        <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enableShuffle}
+              onChange={(e) => setEnableShuffle(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <div>
+              <span className="font-medium text-gray-900">隨機配置模式</span>
+              <p className="text-sm text-gray-500">系統自動隨機排列任務位置</p>
+            </div>
+          </label>
         </div>
 
         {/* 任務輸入表單 */}

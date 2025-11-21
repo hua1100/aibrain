@@ -4,7 +4,7 @@ import { BingoBoard } from '@/components/BingoBoard';
 import { ComboDisplay } from '@/components/BingoBoard/ComboDisplay';
 import { LineComplete, Confetti } from '@/components/Celebration';
 import { AchievementUnlock } from '@/components/Achievement';
-import { Button } from '@/components/common';
+import { Button, ShareButton } from '@/components/common';
 import { useBingoBoard } from '@/hooks/useBingoBoard';
 import { useSound } from '@/hooks/useSound';
 import { useLineDetection } from '@/hooks/useLineDetection';
@@ -129,7 +129,15 @@ export function HomePage() {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center mb-6">
             <div className="text-2xl mb-2">🎉</div>
             <h3 className="font-bold text-green-800">恭喜全清！</h3>
-            <p className="text-sm text-green-600">你完成了今天所有任務</p>
+            <p className="text-sm text-green-600 mb-3">你完成了今天所有任務</p>
+            <ShareButton board={board} />
+          </div>
+        )}
+
+        {/* 分享按鈕（有連線時顯示） */}
+        {lineCount > 0 && board.status !== 'completed' && (
+          <div className="mb-6">
+            <ShareButton board={board} />
           </div>
         )}
 

@@ -19,14 +19,15 @@ export interface UserStats {
 }
 
 export interface DailyStats {
-  id: string; // date (YYYY-MM-DD)
+  id?: string; // date (YYYY-MM-DD)
   date: string;
   tasksCompleted: number;
   linesCompleted: number;
   isFullHouse: boolean;
   score: number;
-  maxCombo: number;
-  timeSpent: number;
+  maxCombo?: number;
+  timeSpent?: number;
+  categoryBreakdown?: Record<string, number>;
 }
 
 export interface Settings {
