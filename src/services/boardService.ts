@@ -120,7 +120,6 @@ export async function toggleTask(
   // 更新全局統計
   const stats = await db.stats.get('global');
   if (stats && isCompleting) {
-    const categoryKey = `categoryStats`;
     const updatedCategoryStats = { ...stats.categoryStats };
     updatedCategoryStats[task.category] = (updatedCategoryStats[task.category] || 0) + 1;
 

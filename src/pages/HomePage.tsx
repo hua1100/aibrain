@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BingoBoard } from '@/components/BingoBoard';
+import { ComboDisplay } from '@/components/BingoBoard/ComboDisplay';
 import { LineComplete, Confetti } from '@/components/Celebration';
+import { AchievementUnlock } from '@/components/Achievement';
 import { Button } from '@/components/common';
 import { useBingoBoard } from '@/hooks/useBingoBoard';
 import { useSound } from '@/hooks/useSound';
 import { useLineDetection } from '@/hooks/useLineDetection';
+import { useCombo } from '@/hooks/useCombo';
+import { useAchievements } from '@/hooks/useAchievements';
 
 export function HomePage() {
   const navigate = useNavigate();
   const { board, isLoading, hasBoard, toggleTask } = useBingoBoard();
   const { playLineComplete, playFullHouse, playTaskComplete, playTaskUncomplete } = useSound();
+  const combo = useCombo();
+  const { newlyUnlocked, clearNewlyUnlocked, checkAndUnlock } = useAchievements();
 
   const [currentLine, setCurrentLine] = useState<number[] | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -36,10 +42,19 @@ export function HomePage() {
     }
   }, [board?.status, showConfetti, playFullHouse]);
 
-  const handleTaskClick = (task: any) => {
+  const handleTaskClick = async (task: any) => {
     // 播放音效
     if (!task.isCompleted) {
       playTaskComplete();
+      combo.recordCompletion();
+
+      // 檢查成就
+      const completedCount = board?.tasks.filter((t) => t.isCompleted).length || 0;
+      await checkAndUnlock({
+        linesCompleted: board?.completedLines.length || 0,
+        isFullHouse: completedCount + 1 === 9,
+        comboCount: combo.count + 1,
+      });
     } else {
       playTaskUncomplete();
     }
@@ -138,6 +153,14 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* Combo 顯示 */}
+      <ComboDisplay
+        count={combo.count}
+        multiplier={combo.multiplier}
+        isActive={combo.isActive}
+        timeRemaining={combo.formattedTime}
+      />
+
       {/* 連線完成動畫 */}
       <LineComplete
         line={currentLine}
@@ -148,6 +171,12 @@ export function HomePage() {
       <Confetti
         isActive={showConfetti}
         onComplete={() => setShowConfetti(false)}
+      />
+
+      {/* 成就解鎖通知 */}
+      <AchievementUnlock
+        types={newlyUnlocked}
+        onComplete={clearNewlyUnlocked}
       />
     </div>
   );

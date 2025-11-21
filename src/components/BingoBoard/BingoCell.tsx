@@ -42,8 +42,8 @@ export function BingoCell({ task, onClick, isHighlighted = false }: BingoCellPro
       style={{
         backgroundColor: task.isCompleted ? category.color : category.bgColor,
         color: task.isCompleted ? 'white' : category.color,
-        ringColor: task.isCompleted ? category.color : undefined,
-      }}
+        '--tw-ring-color': task.isCompleted ? category.color : undefined,
+      } as React.CSSProperties}
     >
       {/* 點擊漣漪效果 */}
       <AnimatePresence>

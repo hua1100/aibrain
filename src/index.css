@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -19,32 +17,36 @@ body {
   min-height: 100vh;
 }
 
-@layer base {
-  html {
-    @apply bg-gray-50 text-gray-900;
-  }
-
-  html.dark {
-    @apply bg-gray-900 text-gray-100;
-  }
+html {
+  background-color: #f9fafb;
+  color: #111827;
 }
 
-@layer components {
-  .bingo-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    aspect-ratio: 1;
-  }
-
-  .bingo-cell {
-    @apply flex items-center justify-center rounded-lg p-2 text-center text-sm font-medium transition-all;
-    aspect-ratio: 1;
-  }
+html.dark {
+  background-color: #111827;
+  color: #f3f4f6;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  aspect-ratio: 1;
+}
+
+.bingo-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  aspect-ratio: 1;
+}
+
+.text-balance {
+  text-wrap: balance;
 }

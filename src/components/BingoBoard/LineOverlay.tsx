@@ -31,7 +31,7 @@ export function LineOverlay({ completedLines }: LineOverlayProps) {
       style={{ zIndex: 10 }}
     >
       <AnimatePresence>
-        {completedLines.map((line, index) => {
+        {completedLines.map((line) => {
           const { x1, y1, x2, y2 } = getLineCoordinates(line);
 
           return (

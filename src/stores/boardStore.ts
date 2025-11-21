@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { BingoBoard, Task, TaskInput } from '@/types';
+import type { BingoBoard, TaskInput } from '@/types';
 import {
   createBoard as createBoardService,
   getTodayBoard,
