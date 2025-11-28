@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useBoardStore } from '@/stores/boardStore';
 
 export function useBingoBoard() {
@@ -7,21 +6,25 @@ export function useBingoBoard() {
     isLoading,
     error,
     loadTodayBoard,
+    loadBoard,
     createBoard,
+    createMandalart,
+    navigateToBoard,
     toggleTask,
+    updateTaskName,
   } = useBoardStore();
-
-  useEffect(() => {
-    loadTodayBoard();
-  }, [loadTodayBoard]);
 
   return {
     board: currentBoard,
     isLoading,
     error,
     hasBoard: !!currentBoard,
+    loadTodayBoard,
+    loadBoard,
     createBoard,
+    createMandalart,
+    navigateToBoard,
     toggleTask,
-    reload: loadTodayBoard,
+    updateTaskName,
   };
 }

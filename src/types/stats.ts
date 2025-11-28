@@ -1,4 +1,4 @@
-import type { CategoryType } from './board';
+import type { CategoryType, CategoryConfig } from './board';
 
 export interface UserStats {
   id: string; // 'global'
@@ -40,4 +40,5 @@ export interface Settings {
   showTutorial: boolean;
   reminderEnabled: boolean;
   reminderTime: string;
+  categories: CategoryConfig[];
 }

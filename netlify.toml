@@ -1,8 +1,18 @@
+# Netlify 建置設定
+[build]
+  # 建置指令，同 package.json
+  command = "npm run build"
+  # Vite 建置後的輸出目錄
+  publish = "dist"
+
+# Netlify Functions (Serverless) 的目錄
+# 雖然目前未使用，但先設定好以備不時之需
+[functions]
+  directory = "netlify/functions"
+
+# 單頁應用 (SPA) 重導向規則
+# 確保所有路由都導向 index.html，讓 React Router 可以接管
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[build]
-  command = "npm run build"
-  publish = "dist"

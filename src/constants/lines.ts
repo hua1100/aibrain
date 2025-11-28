@@ -17,8 +17,6 @@ export const LINES: number[][] = [
   [2, 4, 6], // 右上到左下對角
 ];
 
-export const FREE_SPACE_POSITION = 4;
-
 export const TOTAL_CELLS = 9;
 
-export const TOTAL_TASKS = 8; // 不含免費格
+export const TOTAL_TASKS = 9; // 9 tasks for full board

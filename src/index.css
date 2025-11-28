@@ -1,10 +1,31 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Mega:wght@400;700;900&family=Public+Sans:wght@400;600;700;800&display=swap');
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Neo Brutalism Color Palette - User Provided Swatches */
+  --nb-cyan: #A7DBD8;
+  /* 淺青色 */
+  --nb-lime: #BAFCA2;
+  /* 淺綠色 */
+  --nb-yellow: #FFDB58;
+  /* 淺黃色 */
+  --nb-coral: #FFA07A;
+  /* 淺珊瑚色 */
+  --nb-purple: #E6D5F5;
+  /* 淺紫色 - 從圖片推斷 */
+  --nb-pink: #FFB6C1;
+  /* 淺粉色 */
+  --nb-black: #000000;
+  --nb-white: #FFFFFF;
+  --nb-bg: #FAFAFA;
+  --nb-bg-alt: #F0F0F0;
 
+  /* Typography */
+  font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1.4;
+  font-weight: 600;
+
+  /* Rendering */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,36 +36,93 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--nb-bg);
+  color: var(--nb-black);
 }
 
 html {
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: var(--nb-bg);
+  color: var(--nb-black);
 }
 
-html.dark {
-  background-color: #111827;
-  color: #f3f4f6;
+/* Neo Brutalism Utilities */
+.nb-border {
+  border: 4px solid var(--nb-black);
 }
 
+.nb-border-thick {
+  border: 5px solid var(--nb-black);
+}
+
+.nb-shadow {
+  box-shadow: 4px 4px 0px var(--nb-black);
+}
+
+.nb-shadow-lg {
+  box-shadow: 6px 6px 0px var(--nb-black);
+}
+
+.nb-shadow-hover {
+  transition: all 0.15s ease;
+}
+
+.nb-shadow-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--nb-black);
+}
+
+.nb-shadow-hover:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--nb-black);
+}
+
+/* Bingo Grid - Neo Brutalism Style */
 .bingo-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: 0.75rem;
   aspect-ratio: 1;
+  padding: 1rem;
+  background: var(--nb-white);
+  border: 5px solid var(--nb-black);
+  box-shadow: 8px 8px 0px var(--nb-black);
 }
 
 .bingo-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
+  border: 4px solid var(--nb-black);
+  padding: 0.75rem;
   text-align: center;
   font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.15s;
+  font-weight: 700;
+  transition: all 0.15s ease;
   aspect-ratio: 1;
+  box-shadow: 3px 3px 0px var(--nb-black);
+  background: var(--nb-white);
+}
+
+.bingo-cell:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--nb-black);
+}
+
+.bingo-cell:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px var(--nb-black);
+}
+
+/* Typography */
+.nb-heading {
+  font-family: 'Lexend Mega', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.nb-text {
+  font-family: 'Public Sans', sans-serif;
+  font-weight: 600;
 }
 
 .text-balance {

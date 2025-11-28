@@ -1,3 +1,5 @@
-export { HistoryChart } from './HistoryChart';
-export { CategoryStats } from './CategoryStats';
-export { StreakDisplay } from './StreakDisplay';
+export * from './HistoryChart';
+export * from './CategoryStats';
+export * from './StreakDisplay';
+export * from './ActivityHeatmap';
+export * from './DailyTaskList';

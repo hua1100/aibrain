@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
 import type { Task } from '@/types';
 import { CATEGORIES } from '@/constants';
@@ -6,16 +6,53 @@ import { CATEGORIES } from '@/constants';
 interface BingoCellProps {
   task: Task;
   onClick?: (task: Task) => void;
+  onEdit?: (task: Task, newName: string) => void;
   isHighlighted?: boolean;
+  isLocked?: boolean;
 }
 
-export function BingoCell({ task, onClick, isHighlighted = false }: BingoCellProps) {
-  const category = CATEGORIES[task.category];
-  const isClickable = !task.isFreeSpace && onClick;
+// Tailwind color mapping for animation support
+const TAILWIND_COLORS: Record<string, string> = {
+  'text-blue-600': '#2563eb',
+  'bg-blue-100': '#dbeafe',
+  'text-green-600': '#16a34a',
+  'bg-green-100': '#dcfce7',
+  'text-purple-600': '#9333ea',
+  'bg-purple-100': '#f3e8ff',
+  'text-yellow-600': '#ca8a04',
+  'bg-yellow-100': '#fef9c3',
+  'text-gray-600': '#4b5563',
+  'bg-gray-100': '#f3f4f6',
+};
+
+function resolveColor(color: string): string {
+  // 如果已經是 hex 或 rgb 格式,直接返回
+  if (color.startsWith('#') || color.startsWith('rgb')) return color;
+  // 否則從映射表中查找
+  return TAILWIND_COLORS[color] || color;
+}
+
+export function BingoCell({ task, onClick, onEdit, isHighlighted = false, isLocked = false }: BingoCellProps) {
+  // 使用 fallback 避免 undefined category
+  const category = CATEGORIES[task.category] || CATEGORIES['personal'];
+  const isClickable = !!onClick && !isLocked;
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(task.name);
+
+  // Resolve colors for animation and style
+  const bgColor = resolveColor(category?.bgColor || '#E6D5F5');
+  const textColor = resolveColor(category?.color || '#9333ea');
 
   const handleClick = () => {
-    if (!isClickable) return;
+    if (!isClickable || isEditing) return;
+
+    // 如果是待規劃任務，單擊直接進入編輯模式
+    if (onEdit && task.name === '待規劃' && !task.isCompleted && !isLocked) {
+      setIsEditing(true);
+      setEditValue(task.name);
+      return;
+    }
 
     // 觸發動畫
     setIsAnimating(true);
@@ -24,122 +61,93 @@ export function BingoCell({ task, onClick, isHighlighted = false }: BingoCellPro
     onClick(task);
   };
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onEdit && !task.isCompleted && !isLocked) {
+      setIsEditing(true);
+      setEditValue(task.name);
+    }
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editValue.trim()) {
+      onEdit?.(task, editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditValue(task.name);
+    }
+  };
+
   return (
     <motion.button
-      whileTap={isClickable ? { scale: 0.9 } : undefined}
-      whileHover={isClickable ? { scale: 1.05 } : undefined}
-      animate={isAnimating ? { scale: [1, 1.1, 1] } : undefined}
-      transition={{ duration: 0.2 }}
+      whileTap={isClickable ? { scale: 0.98 } : undefined}
+      whileHover={isClickable ? { y: -2 } : undefined}
+      animate={isAnimating ? { scale: [1, 1.03, 1] } : undefined}
+      transition={{ duration: 0.15 }}
       onClick={handleClick}
-      disabled={task.isFreeSpace}
+      onDoubleClick={handleDoubleClick}
+      disabled={isLocked}
       className={`
         bingo-cell relative overflow-hidden
-        ${task.isCompleted ? 'ring-2 ring-offset-2' : ''}
-        ${isHighlighted ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}
-        ${task.isFreeSpace ? 'cursor-default' : 'cursor-pointer hover:shadow-lg'}
-        transition-shadow duration-200
+        ${isHighlighted ? 'ring-4 ring-[var(--nb-yellow)] ring-offset-2' : ''}
+        ${isLocked ? 'opacity-50 cursor-not-allowed grayscale' : 'cursor-pointer'}
       `}
       style={{
-        backgroundColor: task.isCompleted ? category.color : category.bgColor,
-        color: task.isCompleted ? 'white' : category.color,
-        '--tw-ring-color': task.isCompleted ? category.color : undefined,
+        backgroundColor: task.isCompleted ? textColor : bgColor,
+        color: task.isCompleted ? '#FFFFFF' : textColor,
       } as React.CSSProperties}
     >
-      {/* 點擊漣漪效果 */}
-      <AnimatePresence>
-        {isAnimating && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0.5 }}
-            animate={{ scale: 2, opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="absolute inset-0 rounded-lg"
-            style={{ backgroundColor: category.color }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* 任務名稱 */}
-      <motion.span
-        animate={{
-          scale: task.isCompleted ? [1, 1.05, 1] : 1,
-        }}
-        transition={{ duration: 0.3 }}
-        className="text-xs sm:text-sm font-medium line-clamp-2 px-1 relative z-10"
-      >
-        {task.isFreeSpace ? '免費' : task.name}
-      </motion.span>
-
-      {/* 完成打勾動畫 */}
-      <AnimatePresence>
-        {task.isCompleted && !task.isFreeSpace && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0, rotate: -180 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0, opacity: 0, rotate: 180 }}
-            transition={{
-              type: 'spring',
-              stiffness: 500,
-              damping: 30,
-            }}
-            className="absolute top-1 right-1"
-          >
-            <svg
-              className="w-4 h-4 text-white drop-shadow-sm"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <motion.path
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={3}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 免費格星星圖示 */}
-      {task.isFreeSpace && (
+      {/* 完成打勾 - 簡化版 */}
+      {task.isCompleted && (
         <motion.div
-          animate={{
-            rotate: [0, 5, -5, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatDelay: 3,
-          }}
-          className="absolute top-1 right-1"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          className="absolute top-2 right-2"
         >
           <svg
-            className="w-4 h-4"
-            fill="currentColor"
+            className="w-5 h-5 text-white drop-shadow-lg"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
+            strokeWidth={4}
           >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </motion.div>
       )}
 
-      {/* 完成時的閃光效果 */}
-      <AnimatePresence>
-        {isAnimating && task.isCompleted && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.3, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="absolute inset-0 bg-white rounded-lg"
-          />
+      {/* 任務名稱或編輯框 */}
+      <div className="relative z-10 w-full h-full flex items-center justify-center px-1">
+        {isEditing ? (
+          <form onSubmit={handleEditSubmit} className="w-full">
+            <input
+              autoFocus
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={() => setIsEditing(false)}
+              className="w-full bg-white text-gray-900 text-xs sm:text-sm px-2 py-1 nb-border focus:outline-none focus:ring-2 focus:ring-[var(--nb-yellow)]"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </form>
+        ) : (
+          <span className="text-xs sm:text-sm font-bold line-clamp-2 select-none text-center nb-text">
+            {task.name}
+            {isLocked && <span className="block text-[10px] opacity-75 mt-1">(鎖定)</span>}
+          </span>
         )}
-      </AnimatePresence>
+      </div>
     </motion.button>
   );
 }

@@ -53,11 +53,11 @@ export async function generateShareImage(
 
     // 任務文字
     ctx.fillStyle = task.isCompleted ? '#FFFFFF' : '#374151';
-    ctx.font = task.isFreeSpace ? 'bold 14px sans-serif' : '12px sans-serif';
+    ctx.font = task.category === 'free' ? 'bold 14px sans-serif' : '12px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const text = task.isFreeSpace ? '★ FREE ★' : task.name;
+    const text = task.category === 'free' ? '★ FREE ★' : task.name;
     const maxWidth = cellSize - 20;
     const lines = wrapText(ctx, text, maxWidth);
 

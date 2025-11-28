@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import type { BingoBoard, TaskInput } from '@/types';
+import type { BingoBoard, TaskInput, BoardType } from '@/types';
 import {
   createBoard as createBoardService,
-  getTodayBoard,
   toggleTask as toggleTaskService,
+  updateTaskName as updateTaskNameService,
+  createMandalartSet,
   updateBoardLines,
   markBoardCompleted,
 } from '@/services/boardService';
@@ -16,8 +17,12 @@ interface BoardState {
 
   // Actions
   loadTodayBoard: () => Promise<void>;
+  loadBoard: (type?: BoardType, date?: string) => Promise<void>;
   createBoard: (tasks: TaskInput[]) => Promise<BingoBoard>;
+  createMandalart: (goal: string, subGoals: string[]) => Promise<void>;
+  navigateToBoard: (boardId: string) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
+  updateTaskName: (taskId: string, name: string) => Promise<void>;
   checkLines: () => Promise<number[][]>;
 }
 
@@ -29,7 +34,8 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   loadTodayBoard: async () => {
     set({ isLoading: true, error: null });
     try {
-      const board = await getTodayBoard();
+      const { getBoard } = await import('@/services/boardService');
+      const board = await getBoard('daily');
       set({ currentBoard: board || null, isLoading: false });
     } catch (error) {
       set({ error: '載入失敗', isLoading: false });
@@ -50,6 +56,46 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }
   },
 
+  loadBoard: async (type: BoardType = 'daily', date?: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { getBoard } = await import('@/services/boardService');
+      const board = await getBoard(type, date);
+      set({ currentBoard: board || null, isLoading: false });
+    } catch (error) {
+      set({ error: '載入失敗', isLoading: false });
+      console.error('Failed to load board:', error);
+    }
+  },
+
+  createMandalart: async (goal: string, subGoals: string[]) => {
+    set({ isLoading: true, error: null });
+    try {
+      const board = await createMandalartSet(goal, subGoals);
+      set({ currentBoard: board, isLoading: false });
+    } catch (error) {
+      set({ error: '建立失敗', isLoading: false });
+      console.error('Failed to create mandalart:', error);
+      throw error;
+    }
+  },
+
+  navigateToBoard: async (boardId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { getBoardById } = await import('@/services/boardService');
+      const board = await getBoardById(boardId);
+      if (board) {
+        set({ currentBoard: board, isLoading: false });
+      } else {
+        set({ error: '找不到指定的 Bingo 板', isLoading: false });
+      }
+    } catch (error) {
+      set({ error: '載入失敗', isLoading: false });
+      console.error('Failed to navigate to board:', error);
+    }
+  },
+
   toggleTask: async (taskId: string) => {
     const { currentBoard } = get();
     if (!currentBoard) return;
@@ -67,7 +113,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       });
 
       // 後台更新資料庫
-      await toggleTaskService(currentBoard.id, taskId, 1);
+      await toggleTaskService(currentBoard.id, taskId);
 
       // 檢查連線
       await get().checkLines();
@@ -75,6 +121,26 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       // 回滾
       set({ currentBoard });
       console.error('Failed to toggle task:', error);
+    }
+  },
+
+  updateTaskName: async (taskId: string, name: string) => {
+    const { currentBoard } = get();
+    if (!currentBoard) return;
+
+    try {
+      // 樂觀更新
+      const updatedTasks = currentBoard.tasks.map((task) =>
+        task.id === taskId ? { ...task, name } : task
+      );
+
+      set({
+        currentBoard: { ...currentBoard, tasks: updatedTasks },
+      });
+
+      await updateTaskNameService(taskId, name);
+    } catch (error) {
+      console.error('Failed to update task name:', error);
     }
   },
 

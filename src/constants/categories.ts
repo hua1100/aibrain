@@ -2,39 +2,39 @@ import type { CategoryType, CategoryConfig } from '@/types';
 
 export const CATEGORIES: Record<CategoryType, CategoryConfig> = {
   work: {
-    type: 'work',
+    id: 'work',
     name: '工作',
-    color: '#3B82F6',
-    bgColor: '#DBEAFE',
-    icon: 'briefcase',
+    color: '#2563eb',
+    bgColor: '#A7DBD8',  // 淺青色
+    icon: '💼',
   },
   health: {
-    type: 'health',
+    id: 'health',
     name: '健康',
-    color: '#10B981',
-    bgColor: '#D1FAE5',
-    icon: 'heart',
+    color: '#16a34a',
+    bgColor: '#BAFCA2',  // 淺綠色
+    icon: '💪',
   },
   personal: {
-    type: 'personal',
+    id: 'personal',
     name: '個人',
-    color: '#F59E0B',
-    bgColor: '#FEF3C7',
-    icon: 'user',
+    color: '#9333ea',
+    bgColor: '#E6D5F5',  // 淺紫色
+    icon: '👤',
   },
   learning: {
-    type: 'learning',
+    id: 'learning',
     name: '學習',
-    color: '#8B5CF6',
-    bgColor: '#EDE9FE',
-    icon: 'book',
+    color: '#ca8a04',
+    bgColor: '#FFDB58',  // 淺黃色
+    icon: '📚',
   },
   free: {
-    type: 'free',
-    name: '免費',
-    color: '#6B7280',
-    bgColor: '#F3F4F6',
-    icon: 'star',
+    id: 'free',
+    name: '自由',
+    color: '#4b5563',
+    bgColor: '#FFA07A',  // 淺珊瑚色
+    icon: '✨',
   },
 };
 

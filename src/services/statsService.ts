@@ -162,3 +162,21 @@ export async function recordTodayCompletion(
     });
   }
 }
+
+/**
+ * 取得指定日期的完成任務
+ */
+export async function getTasksByDate(date: string): Promise<any[]> {
+  // 由於我們沒有直接在 Task 上存 completedDate (只有 completedAt Date 物件)
+  // 我們需要查詢範圍
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return db.tasks
+    .where('completedAt')
+    .between(startOfDay, endOfDay, true, true)
+    .toArray();
+}

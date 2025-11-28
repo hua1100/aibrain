@@ -20,12 +20,20 @@ export class BingoTodoDatabase extends Dexie {
     super('BingoTodoDatabase');
 
     this.version(1).stores({
-      boards: '&id, date, status, createdAt',
+      boards: '&id, type, date, status, parentId, rootId, createdAt',
       tasks: '&id, boardId, position, isCompleted',
       achievements: '&id, type, unlockedAt',
       stats: '&id',
       dailyStats: '&id, date',
       settings: '&id',
+    });
+
+    this.version(2).stores({
+      boards: '&id, type, date, [type+date], status, parentId, rootId, createdAt',
+    });
+
+    this.version(3).stores({
+      tasks: '&id, boardId, position, isCompleted, completedAt',
     });
   }
 }
@@ -46,6 +54,13 @@ export async function initializeDatabase(): Promise<void> {
       showTutorial: true,
       reminderEnabled: false,
       reminderTime: '09:00',
+      categories: [
+        { id: 'work', name: '工作', color: 'text-blue-600', bgColor: 'bg-blue-100', icon: '💼', isDefault: true },
+        { id: 'health', name: '健康', color: 'text-green-600', bgColor: 'bg-green-100', icon: '💪', isDefault: true },
+        { id: 'personal', name: '個人', color: 'text-purple-600', bgColor: 'bg-purple-100', icon: '👤', isDefault: true },
+        { id: 'learning', name: '學習', color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: '📚', isDefault: true },
+        { id: 'free', name: '自由', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: '✨', isDefault: true },
+      ],
     });
   }
 

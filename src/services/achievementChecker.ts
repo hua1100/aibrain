@@ -28,28 +28,6 @@ export async function checkAchievements(context: CheckContext): Promise<Achievem
     // 全清相關
     { type: 'first_fullhouse', condition: () => context.isFullHouse },
     { type: 'perfectionist', condition: () => context.totalFullHouses >= 10 },
-    { type: 'speed_demon', condition: () => context.isFullHouse }, // 需要額外時間檢查
-
-    // 連擊相關
-    { type: 'combo_3x', condition: () => context.comboCount >= 3 },
-    { type: 'combo_5x', condition: () => context.comboCount >= 5 },
-
-    // 時間相關
-    { type: 'early_bird', condition: () => context.currentHour < 8 },
-    { type: 'night_owl', condition: () => context.currentHour >= 22 },
-
-    // 連續相關
-    { type: 'week_streak', condition: () => context.currentStreak >= 7 },
-    { type: 'month_streak', condition: () => context.currentStreak >= 30 },
-
-    // 分類大師
-    { type: 'category_master_work', condition: () => (context.categoryStats.work || 0) >= 50 },
-    { type: 'category_master_health', condition: () => (context.categoryStats.health || 0) >= 50 },
-    { type: 'category_master_personal', condition: () => (context.categoryStats.personal || 0) >= 50 },
-    { type: 'category_master_learning', condition: () => (context.categoryStats.learning || 0) >= 50 },
-
-    // 老手
-    { type: 'veteran', condition: () => context.totalDays >= 100 },
   ];
 
   for (const check of checks) {

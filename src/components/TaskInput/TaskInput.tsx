@@ -17,6 +17,7 @@ const createEmptyTask = (category: CategoryType = 'personal'): TaskInputType => 
 const defaultCategories: CategoryType[] = [
   'work', 'health', 'personal', 'learning',
   'work', 'health', 'personal', 'learning',
+  'personal',
 ];
 
 export function TaskInput({ onSubmit, isLoading = false }: TaskInputProps) {
@@ -49,20 +50,20 @@ export function TaskInput({ onSubmit, isLoading = false }: TaskInputProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* 進度提示 */}
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600">
-          已填寫 <span className="font-semibold text-indigo-600">{filledCount}</span> / {TOTAL_TASKS} 個任務
+      <div className="flex items-center justify-between text-sm bg-[var(--nb-white)] nb-border nb-shadow p-4">
+        <span className="font-bold text-[var(--nb-black)] nb-text">
+          已填寫 <span className="text-lg">{filledCount}</span> / {TOTAL_TASKS} 個任務
         </span>
         {isValid && (
-          <span className="text-green-600 font-medium">✓ 可以建立</span>
+          <span className="font-black text-[var(--nb-black)] nb-text">✓ 可以建立</span>
         )}
       </div>
 
-      {/* 進度條 */}
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      {/* 進度條 - Neo Brutalism Style */}
+      <div className="w-full h-4 bg-[var(--nb-white)] nb-border">
         <div
-          className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${(filledCount / TOTAL_TASKS) * 100}%` }}
+          className="h-full bg-[var(--nb-yellow)] transition-all duration-300 nb-border-thick"
+          style={{ width: `${(filledCount / TOTAL_TASKS) * 100}%`, borderWidth: '0 4px 0 0' }}
         />
       </div>
 

@@ -27,7 +27,7 @@ class SoundManager {
    * 播放連線完成音效
    */
   playLineComplete(): void {
-    if (!this.enabled || !this.audioContext) return;
+    if (!this.enabled || !this.audioContext || this.audioContext.state !== 'running') return;
 
     const ctx = this.audioContext;
     const now = ctx.currentTime;
@@ -55,7 +55,7 @@ class SoundManager {
    * 播放全清音效
    */
   playFullHouse(): void {
-    if (!this.enabled || !this.audioContext) return;
+    if (!this.enabled || !this.audioContext || this.audioContext.state !== 'running') return;
 
     const ctx = this.audioContext;
     const now = ctx.currentTime;
@@ -85,7 +85,7 @@ class SoundManager {
    * 播放任務完成音效
    */
   playTaskComplete(): void {
-    if (!this.enabled || !this.audioContext) return;
+    if (!this.enabled || !this.audioContext || this.audioContext.state !== 'running') return;
 
     const ctx = this.audioContext;
     const now = ctx.currentTime;
@@ -110,7 +110,7 @@ class SoundManager {
    * 播放任務取消音效
    */
   playTaskUncomplete(): void {
-    if (!this.enabled || !this.audioContext) return;
+    if (!this.enabled || !this.audioContext || this.audioContext.state !== 'running') return;
 
     const ctx = this.audioContext;
     const now = ctx.currentTime;

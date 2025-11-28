@@ -18,26 +18,26 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+    'inline-flex items-center justify-center font-bold nb-border nb-shadow-hover nb-text uppercase tracking-wide';
 
   const variantStyles = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-    outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-500',
-    ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500',
+    primary: 'bg-[var(--nb-yellow)] text-[var(--nb-black)] hover:bg-[var(--nb-lime)]',
+    secondary: 'bg-[var(--nb-coral)] text-[var(--nb-white)] hover:bg-[var(--nb-pink)]',
+    outline: 'bg-[var(--nb-white)] text-[var(--nb-black)] hover:bg-[var(--nb-bg)]',
+    ghost: 'bg-transparent text-[var(--nb-black)] border-none shadow-none hover:bg-[var(--nb-bg)]',
   };
 
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'px-4 py-2 text-xs',
+    md: 'px-6 py-3 text-sm',
+    lg: 'px-8 py-4 text-base',
   };
 
-  const disabledStyles = 'opacity-50 cursor-not-allowed';
+  const disabledStyles = 'opacity-50 cursor-not-allowed pointer-events-none';
 
   return (
     <motion.button
-      whileTap={{ scale: disabled || isLoading ? 1 : 0.95 }}
+      whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
       className={`
         ${baseStyles}
         ${variantStyles[variant]}
