@@ -6,7 +6,7 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[]
 
-export interface Database {
+export type Database = {
     public: {
         Tables: {
             boards: {
@@ -127,7 +127,7 @@ export interface Database {
 // Boards 表
 // ============================================
 
-export interface BoardRow {
+export type BoardRow = {
     id: string;
     user_id: string;
     type: 'daily' | 'weekly' | 'mandalart';
@@ -135,7 +135,7 @@ export interface BoardRow {
     parent_id: string | null;
     root_id: string | null;
     position: number | null;
-    completed_lines: number[][];
+    completed_lines: Json; // Changed from number[][] to Json for compatibility
     status: 'in_progress' | 'completed' | 'expired';
     score: number;
     max_combo: number;
@@ -144,7 +144,7 @@ export interface BoardRow {
     updated_at: string;
 }
 
-export interface BoardInsert {
+export type BoardInsert = {
     id?: string;
     user_id: string;
     type: 'daily' | 'weekly' | 'mandalart';
@@ -152,7 +152,7 @@ export interface BoardInsert {
     parent_id?: string | null;
     root_id?: string | null;
     position?: number | null;
-    completed_lines?: number[][];
+    completed_lines?: Json; // Changed from number[][] to Json
     status?: 'in_progress' | 'completed' | 'expired';
     score?: number;
     max_combo?: number;
@@ -161,13 +161,13 @@ export interface BoardInsert {
     updated_at?: string;
 }
 
-export interface BoardUpdate {
+export type BoardUpdate = {
     type?: 'daily' | 'weekly' | 'mandalart';
     date?: string;
     parent_id?: string | null;
     root_id?: string | null;
     position?: number | null;
-    completed_lines?: number[][];
+    completed_lines?: Json; // Changed from number[][] to Json
     status?: 'in_progress' | 'completed' | 'expired';
     score?: number;
     max_combo?: number;
@@ -179,7 +179,7 @@ export interface BoardUpdate {
 // Tasks 表
 // ============================================
 
-export interface TaskRow {
+export type TaskRow = {
     id: string;
     board_id: string;
     user_id: string;
@@ -195,7 +195,7 @@ export interface TaskRow {
     updated_at: string;
 }
 
-export interface TaskInsert {
+export type TaskInsert = {
     id?: string;
     board_id: string;
     user_id: string;
@@ -211,7 +211,7 @@ export interface TaskInsert {
     updated_at?: string;
 }
 
-export interface TaskUpdate {
+export type TaskUpdate = {
     name?: string;
     category?: string;
     position?: number;
@@ -227,7 +227,7 @@ export interface TaskUpdate {
 // User Stats 表
 // ============================================
 
-export interface UserStatsRow {
+export type UserStatsRow = {
     id: string;
     user_id: string;
     total_boards: number;
@@ -248,7 +248,7 @@ export interface UserStatsRow {
     updated_at: string;
 }
 
-export interface UserStatsInsert {
+export type UserStatsInsert = {
     id?: string;
     user_id: string;
     total_boards?: number;
@@ -269,7 +269,7 @@ export interface UserStatsInsert {
     updated_at?: string;
 }
 
-export interface UserStatsUpdate {
+export type UserStatsUpdate = {
     total_boards?: number;
     total_tasks?: number;
     total_lines?: number;
@@ -291,7 +291,7 @@ export interface UserStatsUpdate {
 // Daily Stats 表
 // ============================================
 
-export interface DailyStatsRow {
+export type DailyStatsRow = {
     id: string;
     user_id: string;
     date: string;
@@ -304,7 +304,7 @@ export interface DailyStatsRow {
     updated_at: string;
 }
 
-export interface DailyStatsInsert {
+export type DailyStatsInsert = {
     id?: string;
     user_id: string;
     date: string;
@@ -317,7 +317,7 @@ export interface DailyStatsInsert {
     updated_at?: string;
 }
 
-export interface DailyStatsUpdate {
+export type DailyStatsUpdate = {
     tasks_completed?: number;
     lines_completed?: number;
     is_full_house?: boolean;
@@ -330,7 +330,7 @@ export interface DailyStatsUpdate {
 // Settings 表
 // ============================================
 
-export interface SettingsRow {
+export type SettingsRow = {
     id: string;
     user_id: string;
     sound_enabled: boolean;
@@ -346,7 +346,7 @@ export interface SettingsRow {
     updated_at: string;
 }
 
-export interface SettingsInsert {
+export type SettingsInsert = {
     id?: string;
     user_id: string;
     sound_enabled?: boolean;
@@ -362,7 +362,7 @@ export interface SettingsInsert {
     updated_at?: string;
 }
 
-export interface SettingsUpdate {
+export type SettingsUpdate = {
     sound_enabled?: boolean;
     sound_volume?: number;
     vibration_enabled?: boolean;

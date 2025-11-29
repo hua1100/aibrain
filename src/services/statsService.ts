@@ -274,7 +274,7 @@ export async function recordTodayCompletion(
   const existing = existingArray?.[0];
 
   if (existing) {
-    const categoryBreakdown = { ...existing.category_breakdown };
+    const categoryBreakdown = { ...(existing.category_breakdown as Record<string, number>) };
     categoryBreakdown[category] = (categoryBreakdown[category] || 0) + 1;
 
     await supabase

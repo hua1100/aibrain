@@ -438,7 +438,7 @@ async function updateUserStats(userId: string, category: string, points: number)
     .maybeSingle();
 
   if (stats) {
-    const updatedCategoryStats = { ...stats.category_stats };
+    const updatedCategoryStats = { ...(stats.category_stats as Record<string, number>) };
     updatedCategoryStats[category] = (updatedCategoryStats[category] || 0) + 1;
 
     await supabase
@@ -476,7 +476,7 @@ async function updateDailyStats(userId: string, category: string, points: number
     .maybeSingle();
 
   if (dailyStats) {
-    const categoryBreakdown = { ...dailyStats.category_breakdown };
+    const categoryBreakdown = { ...(dailyStats.category_breakdown as Record<string, number>) };
     categoryBreakdown[category] = (categoryBreakdown[category] || 0) + 1;
 
     await supabase
@@ -625,7 +625,7 @@ async function revertStats(boardId: string, userId: string): Promise<void> {
     .maybeSingle();
 
   if (userStats) {
-    const updatedCategoryStats = { ...userStats.category_stats };
+    const updatedCategoryStats = { ...(userStats.category_stats as Record<string, number>) };
 
     // 扣除各分類計數
     Object.entries(categoryCounts).forEach(([category, count]) => {
@@ -672,7 +672,7 @@ async function revertStats(boardId: string, userId: string): Promise<void> {
       .maybeSingle();
 
     if (dailyStats) {
-      const updatedBreakdown = { ...dailyStats.category_breakdown };
+      const updatedBreakdown = { ...(dailyStats.category_breakdown as Record<string, number>) };
 
       Object.entries(stats.categories).forEach(([category, count]) => {
         if (updatedBreakdown[category]) {
