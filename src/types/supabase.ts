@@ -1,7 +1,10 @@
-/**
- * Supabase 資料庫型別定義
- * 對應 supabase_schema.sql 中的資料表結構
- */
+export type Json =
+    | string
+    | number
+    | boolean
+    | null
+    | { [key: string]: Json | undefined }
+    | Json[]
 
 export interface Database {
     public: {
@@ -10,28 +13,113 @@ export interface Database {
                 Row: BoardRow;
                 Insert: BoardInsert;
                 Update: BoardUpdate;
+                Relationships: [
+                    {
+                        foreignKeyName: "boards_parent_id_fkey"
+                        columns: ["parent_id"]
+                        isOneToOne: false
+                        referencedRelation: "boards"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "boards_root_id_fkey"
+                        columns: ["root_id"]
+                        isOneToOne: false
+                        referencedRelation: "boards"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "boards_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ];
             };
             tasks: {
                 Row: TaskRow;
                 Insert: TaskInsert;
                 Update: TaskUpdate;
+                Relationships: [
+                    {
+                        foreignKeyName: "tasks_board_id_fkey"
+                        columns: ["board_id"]
+                        isOneToOne: false
+                        referencedRelation: "boards"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "tasks_related_board_id_fkey"
+                        columns: ["related_board_id"]
+                        isOneToOne: false
+                        referencedRelation: "boards"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "tasks_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ];
             };
             user_stats: {
                 Row: UserStatsRow;
                 Insert: UserStatsInsert;
                 Update: UserStatsUpdate;
+                Relationships: [
+                    {
+                        foreignKeyName: "user_stats_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: true
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ];
             };
             daily_stats: {
                 Row: DailyStatsRow;
                 Insert: DailyStatsInsert;
                 Update: DailyStatsUpdate;
+                Relationships: [
+                    {
+                        foreignKeyName: "daily_stats_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ];
             };
             settings: {
                 Row: SettingsRow;
                 Insert: SettingsInsert;
                 Update: SettingsUpdate;
+                Relationships: [
+                    {
+                        foreignKeyName: "settings_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: true
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ];
             };
         };
+        Views: {
+            [_ in never]: never
+        }
+        Functions: {
+            [_ in never]: never
+        }
+        Enums: {
+            [_ in never]: never
+        }
+        CompositeTypes: {
+            [_ in never]: never
+        }
     };
 }
 
@@ -68,7 +156,9 @@ export interface BoardInsert {
     status?: 'in_progress' | 'completed' | 'expired';
     score?: number;
     max_combo?: number;
+    created_at?: string;
     completed_at?: string | null;
+    updated_at?: string;
 }
 
 export interface BoardUpdate {
@@ -82,6 +172,7 @@ export interface BoardUpdate {
     score?: number;
     max_combo?: number;
     completed_at?: string | null;
+    updated_at?: string;
 }
 
 // ============================================
@@ -116,6 +207,8 @@ export interface TaskInsert {
     completed_at?: string | null;
     combo_multiplier?: number;
     points?: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface TaskUpdate {
@@ -127,6 +220,7 @@ export interface TaskUpdate {
     completed_at?: string | null;
     combo_multiplier?: number;
     points?: number;
+    updated_at?: string;
 }
 
 // ============================================
@@ -147,7 +241,7 @@ export interface UserStatsRow {
     current_streak: number;
     longest_streak: number;
     last_active_date: string | null;
-    category_stats: Record<string, number>;
+    category_stats: Json;
     average_completion_time: number;
     fastest_full_house: number;
     created_at: string;
@@ -168,9 +262,11 @@ export interface UserStatsInsert {
     current_streak?: number;
     longest_streak?: number;
     last_active_date?: string | null;
-    category_stats?: Record<string, number>;
+    category_stats?: Json;
     average_completion_time?: number;
     fastest_full_house?: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface UserStatsUpdate {
@@ -185,9 +281,10 @@ export interface UserStatsUpdate {
     current_streak?: number;
     longest_streak?: number;
     last_active_date?: string | null;
-    category_stats?: Record<string, number>;
+    category_stats?: Json;
     average_completion_time?: number;
     fastest_full_house?: number;
+    updated_at?: string;
 }
 
 // ============================================
@@ -202,7 +299,7 @@ export interface DailyStatsRow {
     lines_completed: number;
     is_full_house: boolean;
     score: number;
-    category_breakdown: Record<string, number>;
+    category_breakdown: Json;
     created_at: string;
     updated_at: string;
 }
@@ -215,7 +312,9 @@ export interface DailyStatsInsert {
     lines_completed?: number;
     is_full_house?: boolean;
     score?: number;
-    category_breakdown?: Record<string, number>;
+    category_breakdown?: Json;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface DailyStatsUpdate {
@@ -223,7 +322,8 @@ export interface DailyStatsUpdate {
     lines_completed?: number;
     is_full_house?: boolean;
     score?: number;
-    category_breakdown?: Record<string, number>;
+    category_breakdown?: Json;
+    updated_at?: string;
 }
 
 // ============================================
@@ -241,14 +341,7 @@ export interface SettingsRow {
     show_tutorial: boolean;
     reminder_enabled: boolean;
     reminder_time: string;
-    categories: Array<{
-        id: string;
-        name: string;
-        color: string;
-        bgColor: string;
-        icon: string;
-        isDefault?: boolean;
-    }>;
+    categories: Json;
     created_at: string;
     updated_at: string;
 }
@@ -264,14 +357,9 @@ export interface SettingsInsert {
     show_tutorial?: boolean;
     reminder_enabled?: boolean;
     reminder_time?: string;
-    categories?: Array<{
-        id: string;
-        name: string;
-        color: string;
-        bgColor: string;
-        icon: string;
-        isDefault?: boolean;
-    }>;
+    categories?: Json;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface SettingsUpdate {
@@ -283,12 +371,6 @@ export interface SettingsUpdate {
     show_tutorial?: boolean;
     reminder_enabled?: boolean;
     reminder_time?: string;
-    categories?: Array<{
-        id: string;
-        name: string;
-        color: string;
-        bgColor: string;
-        icon: string;
-        isDefault?: boolean;
-    }>;
+    categories?: Json;
+    updated_at?: string;
 }
