@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HistoryChart, CategoryStats, ActivityHeatmap, DailyTaskList } from '@/components/Stats';
+import { CategoryStats, ActivityHeatmap, DailyTaskList } from '@/components/Stats';
 import { Button } from '@/components/common';
-import { getRecentStats, getCategoryStats, getStatsInRange } from '@/services/statsService';
-import type { DailyStats } from '@/types';
+import { getCategoryStats, getStatsInRange } from '@/services/statsService';
+import { getCurrentUser } from '@/services/authService';
+import { getSettings } from '@/services/settingsService';
+import type { DailyStats, CategoryConfig } from '@/types';
 
 export function StatsPage() {
-  const [recentStats, setRecentStats] = useState<DailyStats[]>([]);
   const [yearStats, setYearStats] = useState<DailyStats[]>([]);
   const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
+  const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]);
 
@@ -16,17 +18,26 @@ export function StatsPage() {
     async function loadStats() {
       try {
         const today = new Date();
-        const startOfYear = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+        const user = await getCurrentUser();
+
+        // 使用使用者註冊時間作為起始時間，如果沒有則預設為今年年初
+        let startDate = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+        if (user?.created_at) {
+          startDate = user.created_at.split('T')[0];
+        }
+
         const endOfYear = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
 
-        const [recent, yearData, categories] = await Promise.all([
-          getRecentStats(7),
-          getStatsInRange(startOfYear, endOfYear),
+        const [yearData, statsCategories, settings] = await Promise.all([
+          getStatsInRange(startDate, endOfYear),
           getCategoryStats(),
+          getSettings(),
         ]);
-        setRecentStats(recent);
         setYearStats(yearData);
-        setCategoryStats(categories);
+        setCategoryStats(statsCategories);
+        if (settings?.categories) {
+          setCategories(settings.categories);
+        }
       } catch (error) {
         console.error('載入統計失敗:', error);
       } finally {
@@ -95,14 +106,41 @@ export function StatsPage() {
           <DailyTaskList date={selectedDate} />
         )}
 
-        {/* 歷史圖表 (最近7天) */}
-        <div className="bg-[var(--nb-white)] nb-border nb-shadow-lg p-5">
+        {/* 歷史圖表 (最近7天) - 已移除 */}
+        {/* <div className="bg-[var(--nb-white)] nb-border nb-shadow-lg p-5">
           <HistoryChart data={recentStats} days={7} />
-        </div>
+        </div> */}
 
         {/* 分類統計 */}
         <div className="bg-[var(--nb-white)] nb-border nb-shadow-lg p-5">
-          <CategoryStats data={categoryStats} />
+          <CategoryStats data={categoryStats} categories={categories} />
+        </div>
+
+        {/* 危險區域 - 重置所有進度 */}
+        <div className="bg-red-50 border-2 border-red-200 p-5 rounded-lg">
+          <h3 className="text-lg font-black text-red-600 mb-2 nb-heading uppercase">危險區域</h3>
+          <p className="text-sm text-red-500 font-bold mb-4">
+            此操作將重置所有任務進度、統計數據和成就。此動作無法復原。
+          </p>
+          <Button
+            variant="outline"
+            className="w-full text-red-500 border-red-200 hover:bg-red-100 hover:text-red-600"
+            onClick={async () => {
+              if (confirm('確定要重置所有進度嗎？這將清空所有統計數據和任務狀態，且無法復原！')) {
+                try {
+                  const { resetAllUserProgress } = await import('@/services/boardService');
+                  await resetAllUserProgress();
+                  alert('所有進度已重置');
+                  window.location.reload();
+                } catch (error) {
+                  console.error('重置失敗:', error);
+                  alert('重置失敗，請稍後再試');
+                }
+              }
+            }}
+          >
+            重置所有進度
+          </Button>
         </div>
 
         {/* 返回按鈕 */}

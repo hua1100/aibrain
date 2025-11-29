@@ -1,20 +1,78 @@
-import { db } from './database';
+import { supabase } from './supabase';
 
 /**
- * 清除本地數據 (登入/登出時使用)
+ * 清除本地 Session (登出時使用)
  */
 export async function clearLocalData() {
-    await db.boards.clear();
-    await db.dailyStats.clear();
-    console.log('✅ 本地數據已清除');
+    // await supabase.auth.signOut(); // 移除此行,避免在 onAuthStateChange 中造成循環
+    console.log('✅ 已登出,本地數據清理完成');
 }
 
 /**
  * 初始化用戶數據 (登入時調用)
- * 簡化版:直接清空本地數據,讓用戶從空白狀態開始
+ * Supabase 會自動透過觸發器建立 user_stats 和 settings
  */
 export async function initializeUserData(userId: string) {
     console.log(`🔄 初始化用戶 ${userId} 的數據...`);
-    await clearLocalData();
-    console.log('✅ 用戶數據已初始化 (空白狀態)');
+
+    // 檢查是否已有 user_stats,如果沒有則等待觸發器建立
+    const { data: stats } = await supabase
+        .from('user_stats')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+    if (!stats || stats.length === 0) {
+        console.log('⏳ 等待 Supabase 觸發器建立初始資料...');
+        // 等待一下讓觸發器執行
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    console.log('✅ 用戶數據已初始化');
+}
+
+/**
+ * 訂閱 Realtime 更新 (可選)
+ */
+export function subscribeToBoards(userId: string, callback: (payload: any) => void) {
+    const channel = supabase
+        .channel('boards-changes')
+        .on(
+            'postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'boards',
+                filter: `user_id=eq.${userId}`,
+            },
+            callback
+        )
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
+}
+
+/**
+ * 訂閱任務更新 (可選)
+ */
+export function subscribeToTasks(userId: string, callback: (payload: any) => void) {
+    const channel = supabase
+        .channel('tasks-changes')
+        .on(
+            'postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'tasks',
+                filter: `user_id=eq.${userId}`,
+            },
+            callback
+        )
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
 }

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { db } from '@/services/database';
+// import { useState, useEffect } from 'react';
+// import { getSettings } from '@/services/settingsService';
 import type { CategoryType, TaskInput, CategoryConfig } from '@/types';
 
 interface TaskItemProps {
@@ -7,18 +7,10 @@ interface TaskItemProps {
   task: TaskInput;
   onChange: (index: number, task: TaskInput) => void;
   onRemove?: (index: number) => void;
+  categories: CategoryConfig[];
 }
 
-export function TaskItem({ index, task, onChange, onRemove }: TaskItemProps) {
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-
-  useEffect(() => {
-    db.settings.get('user').then((settings) => {
-      if (settings?.categories) {
-        setCategories(settings.categories);
-      }
-    });
-  }, []);
+export function TaskItem({ index, task, onChange, onRemove, categories }: TaskItemProps) {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(index, { ...task, name: e.target.value });
@@ -44,7 +36,8 @@ export function TaskItem({ index, task, onChange, onRemove }: TaskItemProps) {
         value={task.name}
         onChange={handleNameChange}
         placeholder={`任務 ${index + 1}`}
-        className="flex-1 px-4 py-3 nb-border text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[var(--nb-yellow)] nb-text"
+        className={`flex-1 px-4 py-3 nb-border text-sm font-bold focus:outline-none focus:ring-4 focus:ring-[var(--nb-yellow)] nb-text ${task.name.trim() ? 'border-green-500 bg-green-50' : ''
+          }`}
         maxLength={20}
       />
 

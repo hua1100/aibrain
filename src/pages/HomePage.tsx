@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BingoBoard } from '@/components/BingoBoard';
 import { LineComplete, Confetti } from '@/components/Celebration';
 import { Button, ShareButton } from '@/components/common';
@@ -17,6 +17,7 @@ export function HomePage() {
     toggleTask,
     navigateToBoard,
     updateTaskName,
+    deleteBoard,
   } = useBingoBoard();
 
   const { playLineComplete, playFullHouse, playTaskComplete, playTaskUncomplete } = useSound();
@@ -27,6 +28,8 @@ export function HomePage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [boardType, setBoardType] = useState<BoardType>('daily');
 
+  const { boardId } = useParams<{ boardId: string }>();
+
   // 連線檢測
   useLineDetection((line) => {
     setCurrentLine(line);
@@ -35,8 +38,12 @@ export function HomePage() {
 
   // 載入看板
   useEffect(() => {
-    loadBoard(boardType);
-  }, [boardType, loadBoard]);
+    if (boardId) {
+      navigateToBoard(boardId);
+    } else {
+      loadBoard(boardType);
+    }
+  }, [boardType, loadBoard, boardId, navigateToBoard]);
 
   // 為了避免修改 imports (雖然最好是加 useRef)，我們可以用一個簡單的 state 來記錄是否是第一次載入
   const [isLoaded, setIsLoaded] = useState(false);
@@ -130,40 +137,50 @@ export function HomePage() {
     <div className="min-h-screen py-8 px-4" style={{ background: 'linear-gradient(135deg, var(--nb-purple) 0%, var(--nb-pink) 100%)' }}>
       <div className="max-w-md mx-auto">
         {/* 標題與切換 */}
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-black text-[var(--nb-black)] mb-6 nb-heading">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-black text-[var(--nb-black)] nb-heading">
             BINGO 待辦事項
           </h1>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const { signOut } = await import('@/services/authService');
+              await signOut();
+            }}
+          >
+            登出
+          </Button>
+        </div>
 
-          {/* 模式切換 Tabs - Neo Brutalism Style */}
-          <div className="flex justify-center gap-3 mb-4">
-            {(['daily', 'weekly', 'mandalart'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setBoardType(type)}
-                className={`
+        {/* 模式切換 Tabs - Neo Brutalism Style */}
+        <div className="flex justify-center gap-3 mb-4">
+          {(['daily', 'weekly', 'mandalart'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setBoardType(type)}
+              className={`
                   px-6 py-3 font-bold text-sm uppercase tracking-wide nb-border nb-shadow transition-all
                   ${boardType === type
-                    ? 'bg-[var(--nb-yellow)] text-[var(--nb-black)] transform -translate-y-1'
-                    : 'bg-[var(--nb-white)] text-[var(--nb-black)] hover:transform hover:-translate-y-0.5'}
+                  ? 'bg-[var(--nb-yellow)] text-[var(--nb-black)] transform -translate-y-1'
+                  : 'bg-[var(--nb-white)] text-[var(--nb-black)] hover:transform hover:-translate-y-0.5'}
                 `}
-              >
-                {type === 'daily' && '每日'}
-                {type === 'weekly' && '每週'}
-                {type === 'mandalart' && '曼陀羅'}
-              </button>
-            ))}
-          </div>
-
-          <p className="text-sm font-bold text-[var(--nb-black)] nb-text">
-            {new Date().toLocaleDateString('zh-TW', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              weekday: 'long',
-            })}
-          </p>
+            >
+              {type === 'daily' && '每日'}
+              {type === 'weekly' && '每週'}
+              {type === 'mandalart' && '曼陀羅'}
+            </button>
+          ))}
         </div>
+
+        <p className="text-sm font-bold text-[var(--nb-black)] nb-text">
+          {new Date().toLocaleDateString('zh-TW', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+          })}
+        </p>
 
         {!board ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
@@ -182,7 +199,7 @@ export function HomePage() {
                 建立曼陀羅計畫
               </Button>
             ) : (
-              <Link to="/create">
+              <Link to={`/create?type=${boardType}`}>
                 <Button>建立 Bingo 板</Button>
               </Link>
             )}
@@ -254,6 +271,21 @@ export function HomePage() {
                 <ShareButton board={board} />
               </div>
             )}
+
+            {/* 管理功能 */}
+            <div className="mb-6 flex gap-2 justify-center">
+              <Button
+                variant="outline"
+                className="text-red-500 border-red-200 hover:bg-red-50"
+                onClick={async () => {
+                  if (confirm('確定要刪除這個 Bingo 板嗎？此動作無法復原。')) {
+                    await deleteBoard(board.id);
+                  }
+                }}
+              >
+                刪除 Bingo 板
+              </Button>
+            </div>
           </>
         )}
 

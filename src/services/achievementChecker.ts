@@ -1,6 +1,11 @@
-import { db } from './database';
-import type { Achievement, AchievementType } from '@/types';
-import { ACHIEVEMENTS } from '@/constants';
+/**
+ * 成就檢查器
+ * 
+ * 注意:此功能暫時停用,因為 achievements 表尚未在 Supabase Schema 中定義
+ * 如需啟用,請先在 Supabase 建立 achievements 表
+ */
+
+import type { AchievementType } from '@/types';
 
 interface CheckContext {
   linesCompleted: number;
@@ -14,109 +19,35 @@ interface CheckContext {
 }
 
 /**
- * 檢查所有成就條件
+ * 檢查所有成就條件 (暫時停用)
  */
 export async function checkAchievements(context: CheckContext): Promise<AchievementType[]> {
-  const unlockedTypes: AchievementType[] = [];
-
-  const checks: Array<{ type: AchievementType; condition: () => boolean }> = [
-    // 連線相關
-    { type: 'first_line', condition: () => context.linesCompleted >= 1 },
-    { type: 'three_lines', condition: () => context.linesCompleted >= 3 },
-    { type: 'five_lines', condition: () => context.linesCompleted >= 5 },
-
-    // 全清相關
-    { type: 'first_fullhouse', condition: () => context.isFullHouse },
-    { type: 'perfectionist', condition: () => context.totalFullHouses >= 10 },
-  ];
-
-  for (const check of checks) {
-    if (check.condition()) {
-      const isNewlyUnlocked = await tryUnlockAchievement(check.type);
-      if (isNewlyUnlocked) {
-        unlockedTypes.push(check.type);
-      }
-    }
-  }
-
-  return unlockedTypes;
+  console.warn('成就系統暫時停用,等待 Supabase achievements 表建立');
+  return [];
 }
 
 /**
- * 嘗試解鎖成就
- */
-async function tryUnlockAchievement(type: AchievementType): Promise<boolean> {
-  const existing = await db.achievements.where('type').equals(type).first();
-
-  if (existing?.unlockedAt) {
-    return false; // 已經解鎖
-  }
-
-  if (existing) {
-    await db.achievements.update(existing.id, {
-      unlockedAt: new Date(),
-      progress: 100,
-    });
-  } else {
-    await db.achievements.add({
-      id: `achievement-${type}`,
-      type,
-      unlockedAt: new Date(),
-      progress: 100,
-    });
-  }
-
-  return true;
-}
-
-/**
- * 更新成就進度
+ * 更新成就進度 (暫時停用)
  */
 export async function updateAchievementProgress(
   type: AchievementType,
   progress: number
 ): Promise<void> {
-  const existing = await db.achievements.where('type').equals(type).first();
-  const config = ACHIEVEMENTS[type];
-
-  if (existing) {
-    if (!existing.unlockedAt) {
-      await db.achievements.update(existing.id, {
-        progress: Math.min(progress, config.maxProgress),
-      });
-    }
-  } else {
-    await db.achievements.add({
-      id: `achievement-${type}`,
-      type,
-      unlockedAt: null,
-      progress: Math.min(progress, config.maxProgress),
-    });
-  }
+  console.warn('成就系統暫時停用,等待 Supabase achievements 表建立');
 }
 
 /**
- * 取得所有成就狀態
+ * 取得所有成就狀態 (暫時停用)
  */
-export async function getAllAchievements(): Promise<Achievement[]> {
-  const saved = await db.achievements.toArray();
-  const allTypes = Object.keys(ACHIEVEMENTS) as AchievementType[];
-
-  return allTypes.map((type) => {
-    const existing = saved.find((a) => a.type === type);
-    return existing || {
-      id: `achievement-${type}`,
-      type,
-      unlockedAt: null,
-      progress: 0,
-    };
-  });
+export async function getAllAchievements(): Promise<any[]> {
+  console.warn('成就系統暫時停用,等待 Supabase achievements 表建立');
+  return [];
 }
 
 /**
- * 取得已解鎖成就數量
+ * 取得已解鎖成就數量 (暫時停用)
  */
 export async function getUnlockedCount(): Promise<number> {
-  const achievements = await db.achievements.toArray();
-  return achievements.filter((a) => a.unlockedAt).length;
+  console.warn('成就系統暫時停用,等待 Supabase achievements 表建立');
+  return 0;
 }

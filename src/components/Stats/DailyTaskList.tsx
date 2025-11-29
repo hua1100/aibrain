@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getTasksByDate } from '@/services/statsService';
-import { db } from '@/services/database';
+import { getSettings } from '@/services/settingsService';
 import type { Task, CategoryConfig } from '@/types';
 
 interface DailyTaskListProps {
@@ -18,7 +18,7 @@ export function DailyTaskList({ date }: DailyTaskListProps) {
             try {
                 const [taskList, settings] = await Promise.all([
                     getTasksByDate(date),
-                    db.settings.get('user'),
+                    getSettings(),
                 ]);
 
                 setTasks(taskList);

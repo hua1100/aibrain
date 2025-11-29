@@ -18,19 +18,24 @@ export function CreateMandalartPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!mainGoal.trim()) return;
+        if (!mainGoal.trim() || subGoals.some(goal => !goal.trim())) return;
 
         try {
             // 過濾掉空的子目標，或者保留它們作為"未設定"
             // 這裡我們直接傳遞陣列，createMandalart 會處理
-            await createMandalart(mainGoal, subGoals);
-            navigate('/');
+            // 這裡我們直接傳遞陣列，createMandalart 會處理
+            const board = await createMandalart(mainGoal, subGoals);
+            if (board) {
+                navigate(`/board/${board.id}`);
+            } else {
+                navigate('/');
+            }
         } catch (error) {
             console.error('Failed to create mandalart:', error);
         }
     };
 
-    const isFormValid = mainGoal.trim() !== '';
+    const isFormValid = mainGoal.trim() !== '' && subGoals.every(goal => goal.trim() !== '');
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4">

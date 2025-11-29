@@ -12,6 +12,8 @@ export function useBingoBoard() {
     navigateToBoard,
     toggleTask,
     updateTaskName,
+    deleteBoard,
+    resetBoardProgress,
   } = useBoardStore();
 
   return {
@@ -26,5 +28,7 @@ export function useBingoBoard() {
     navigateToBoard,
     toggleTask,
     updateTaskName,
+    deleteBoard,
+    resetBoardProgress,
   };
 }

@@ -32,13 +32,9 @@ export function BingoBoard({
     // 只有中間格(位置4)需要特殊處理
     if (task.position !== 4) return false;
 
-    // 情況 1: Mandalart 子板的中間格 (子目標)
-    // 應該始終鎖定，因為它是由周圍任務自動完成的
-    if (isMandalartChild) return true;
-
-    // 情況 2: Mandalart 核心板的中間格 (核心目標)
+    // Mandalart (無論是核心板還是子板) 的中間格
     // 只有當周圍 8 格都完成時才解鎖
-    if (isMandalartRoot) {
+    if (isMandalartRoot || isMandalartChild) {
       const surroundingTasks = sortedTasks.filter(t => t.position !== 4);
       return !surroundingTasks.every(t => t.isCompleted);
     }

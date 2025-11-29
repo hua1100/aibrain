@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '@/services/database';
+import { getSettings } from '@/services/settingsService';
 import type { CategoryType, CategoryConfig } from '@/types';
 
 interface CategorySelectorProps {
@@ -12,7 +12,7 @@ export function CategorySelector({ value, onChange, size = 'md' }: CategorySelec
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
 
   useEffect(() => {
-    db.settings.get('user').then((settings) => {
+    getSettings().then((settings) => {
       if (settings?.categories) {
         setCategories(settings.categories);
       }

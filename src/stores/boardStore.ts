@@ -18,12 +18,14 @@ interface BoardState {
   // Actions
   loadTodayBoard: () => Promise<void>;
   loadBoard: (type?: BoardType, date?: string) => Promise<void>;
-  createBoard: (tasks: TaskInput[]) => Promise<BingoBoard>;
-  createMandalart: (goal: string, subGoals: string[]) => Promise<void>;
+  createBoard: (tasks: TaskInput[], type?: BoardType) => Promise<BingoBoard>;
+  createMandalart: (goal: string, subGoals: string[]) => Promise<BingoBoard>;
   navigateToBoard: (boardId: string) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
   updateTaskName: (taskId: string, name: string) => Promise<void>;
   checkLines: () => Promise<number[][]>;
+  deleteBoard: (boardId: string) => Promise<void>;
+  resetBoardProgress: (boardId: string) => Promise<void>;
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
@@ -43,10 +45,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }
   },
 
-  createBoard: async (tasks: TaskInput[]) => {
+  createBoard: async (tasks: TaskInput[], type: BoardType = 'daily') => {
     set({ isLoading: true, error: null });
     try {
-      const board = await createBoardService(tasks);
+      const board = await createBoardService(tasks, type);
       set({ currentBoard: board, isLoading: false });
       return board;
     } catch (error) {
@@ -73,6 +75,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     try {
       const board = await createMandalartSet(goal, subGoals);
       set({ currentBoard: board, isLoading: false });
+      return board;
     } catch (error) {
       set({ error: '建立失敗', isLoading: false });
       console.error('Failed to create mandalart:', error);
@@ -181,5 +184,34 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }
 
     return completedLines;
+  },
+
+  deleteBoard: async (boardId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { deleteBoard } = await import('@/services/boardService');
+      await deleteBoard(boardId);
+      set({ currentBoard: null, isLoading: false });
+    } catch (error) {
+      set({ error: '刪除失敗', isLoading: false });
+      console.error('Failed to delete board:', error);
+      throw error;
+    }
+  },
+
+  resetBoardProgress: async (boardId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { resetBoardProgress, getBoardById } = await import('@/services/boardService');
+      await resetBoardProgress(boardId);
+
+      // 重新載入 Board 以更新狀態
+      const updatedBoard = await getBoardById(boardId);
+      set({ currentBoard: updatedBoard || null, isLoading: false });
+    } catch (error) {
+      set({ error: '重置失敗', isLoading: false });
+      console.error('Failed to reset board progress:', error);
+      throw error;
+    }
   },
 }));

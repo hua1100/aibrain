@@ -5,10 +5,15 @@ import { useBoardStore } from '@/stores/boardStore';
 import type { TaskInput as TaskInputType } from '@/types';
 import { shuffleTaskPositions } from '@/utils/shuffleUtils';
 
+import { useSearchParams } from 'react-router-dom';
+import type { BoardType } from '@/types';
+
 export function CreatePage() {
   const navigate = useNavigate();
   const { createBoard, isLoading } = useBoardStore();
   const [enableShuffle, setEnableShuffle] = useState(false);
+  const [searchParams] = useSearchParams();
+  const type = (searchParams.get('type') as BoardType) || 'daily';
 
   const handleSubmit = async (tasks: TaskInputType[]) => {
     try {
@@ -17,8 +22,8 @@ export function CreatePage() {
         ? shuffleTaskPositions(tasks).filter((t): t is TaskInputType => t !== null)
         : tasks;
 
-      await createBoard(orderedTasks);
-      navigate('/');
+      const board = await createBoard(orderedTasks, type);
+      navigate(`/board/${board.id}`);
     } catch (error) {
       console.error('Failed to create board:', error);
     }
@@ -30,10 +35,10 @@ export function CreatePage() {
         {/* 標題 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black text-[var(--nb-black)] mb-3 nb-heading">
-            建立今日 BINGO 板
+            {type === 'weekly' ? '建立本週 BINGO 板' : '建立今日 BINGO 板'}
           </h1>
           <p className="text-base font-bold text-[var(--nb-black)] nb-text">
-            輸入你今天要完成的 9 個任務
+            {type === 'weekly' ? '輸入你本週要完成的 9 個任務' : '輸入你今天要完成的 9 個任務'}
           </p>
         </div>
 
@@ -54,7 +59,11 @@ export function CreatePage() {
         </div>
 
         {/* 任務輸入表單 */}
-        <TaskInput onSubmit={handleSubmit} isLoading={isLoading} />
+        <TaskInput
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          submitText={type === 'weekly' ? '建立本週 Bingo 板' : '建立今日 Bingo 板'}
+        />
 
         {/* 提示 - Neo Brutalism Style */}
         <div className="mt-6 p-5 bg-[var(--nb-coral)] nb-border nb-shadow-lg">

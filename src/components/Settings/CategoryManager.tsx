@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '@/services/database';
+import { getSettings, updateSettings } from '@/services/settingsService';
 import { Button } from '@/components/common';
 import type { CategoryConfig } from '@/types';
 
@@ -18,7 +18,7 @@ export function CategoryManager() {
     }, []);
 
     async function loadCategories() {
-        const settings = await db.settings.get('user');
+        const settings = await getSettings();
         if (settings?.categories) {
             setCategories(settings.categories);
         }
@@ -38,7 +38,7 @@ export function CategoryManager() {
         };
 
         const updatedCategories = [...categories, category];
-        await db.settings.update('user', { categories: updatedCategories });
+        await updateSettings({ categories: updatedCategories });
         setCategories(updatedCategories);
         setNewCategory({ name: '', icon: '🏷️', color: 'text-gray-600', bgColor: 'bg-gray-100' });
         setIsEditing(false);
@@ -47,7 +47,7 @@ export function CategoryManager() {
     async function handleDelete(id: string) {
         if (!confirm('確定要刪除此分類嗎？')) return;
         const updatedCategories = categories.filter(c => c.id !== id);
-        await db.settings.update('user', { categories: updatedCategories });
+        await updateSettings({ categories: updatedCategories });
         setCategories(updatedCategories);
     }
 

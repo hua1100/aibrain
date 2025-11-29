@@ -2,15 +2,21 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { User } from '@supabase/supabase-js';
 import { getCurrentUser, onAuthStateChange } from '@/services/authService';
 
+import { initializeUserData, clearLocalData } from '@/services/syncService';
+
 interface AuthContextType {
     user: User | null;
     loading: boolean;
     isAuthenticated: boolean;
+    signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+console.log('AuthContext module evaluated');
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+    console.log('AuthProvider rendering');
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -22,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 // 如果有使用者,初始化其數據
                 if (user) {
-                    const { initializeUserData } = await import('@/services/syncService');
                     await initializeUserData(user.id);
                 }
             })
@@ -35,11 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // 當使用者登入時,初始化數據
             if (user) {
-                const { initializeUserData } = await import('@/services/syncService');
                 await initializeUserData(user.id);
             } else {
                 // 當使用者登出時,清除本地數據
-                const { clearLocalData } = await import('@/services/syncService');
                 await clearLocalData();
             }
 
@@ -51,10 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, []);
 
+    const signOut = async () => {
+        const { signOut } = await import('@/services/authService');
+        await signOut();
+        setUser(null);
+    };
+
     const value = {
         user,
         loading,
         isAuthenticated: !!user,
+        signOut,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

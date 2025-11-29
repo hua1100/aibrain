@@ -1,19 +1,20 @@
-import { CATEGORIES } from '@/constants';
+import type { CategoryConfig } from '@/types';
 
 interface CategoryStatsProps {
   data: Record<string, number>;
+  categories: CategoryConfig[];
 }
 
-export function CategoryStats({ data }: CategoryStatsProps) {
+export function CategoryStats({ data, categories: configCategories }: CategoryStatsProps) {
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
 
-  const categories = Object.entries(CATEGORIES).map(([key, category]) => ({
-    key,
+  const categories = configCategories.map((category) => ({
+    key: category.id,
     name: category.name,
     color: category.color,
     bgColor: category.bgColor,
-    count: data[key] || 0,
-    percentage: total > 0 ? ((data[key] || 0) / total) * 100 : 0,
+    count: data[category.id] || 0,
+    percentage: total > 0 ? ((data[category.id] || 0) / total) * 100 : 0,
   }));
 
   return (
