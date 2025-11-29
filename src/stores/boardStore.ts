@@ -18,7 +18,7 @@ interface BoardState {
   // Actions
   loadTodayBoard: () => Promise<void>;
   loadBoard: (type?: BoardType, date?: string) => Promise<void>;
-  createBoard: (tasks: TaskInput[], type?: BoardType) => Promise<BingoBoard>;
+  createBoard: (tasks: TaskInput[], type?: BoardType, date?: string) => Promise<BingoBoard>;
   createMandalart: (goal: string, subGoals: string[]) => Promise<BingoBoard>;
   navigateToBoard: (boardId: string) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
@@ -45,10 +45,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }
   },
 
-  createBoard: async (tasks: TaskInput[], type: BoardType = 'daily') => {
+  createBoard: async (tasks: TaskInput[], type: BoardType = 'daily', date?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const board = await createBoardService(tasks, type);
+      const board = await createBoardService(tasks, type, undefined, undefined, undefined, date);
       set({ currentBoard: board, isLoading: false });
       return board;
     } catch (error) {

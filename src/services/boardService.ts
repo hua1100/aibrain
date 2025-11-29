@@ -62,11 +62,12 @@ export async function createBoard(
   type: BoardType = 'daily',
   parentId?: string,
   rootId?: string,
-  position?: number
+  position?: number,
+  date?: string
 ): Promise<BingoBoard> {
   const userId = await getCurrentUserId();
   const boardId = uuidv4();
-  const today = new Date().toISOString().split('T')[0];
+  const boardDate = date || new Date().toISOString().split('T')[0];
 
   // 建立 board 記錄
   const { data: boardData, error: boardError } = await supabase
@@ -75,7 +76,7 @@ export async function createBoard(
       id: boardId,
       user_id: userId,
       type,
-      date: today,
+      date: boardDate,
       parent_id: parentId || null,
       root_id: rootId || null,
       position: position ?? null,

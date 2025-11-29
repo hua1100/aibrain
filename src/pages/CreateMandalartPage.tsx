@@ -41,6 +41,15 @@ export function CreateMandalartPage() {
         <div className="min-h-screen bg-gray-50 py-8 px-4">
             <div className="max-w-2xl mx-auto">
                 <div className="text-center mb-8">
+                    <div className="mb-4 flex justify-start">
+                        <button
+                            onClick={() => navigate('/')}
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                        >
+                            <span>←</span>
+                            <span>返回首頁</span>
+                        </button>
+                    </div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">
                         建立曼陀羅計畫
                     </h1>

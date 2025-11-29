@@ -14,6 +14,7 @@ export function CreatePage() {
   const [enableShuffle, setEnableShuffle] = useState(false);
   const [searchParams] = useSearchParams();
   const type = (searchParams.get('type') as BoardType) || 'daily';
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleSubmit = async (tasks: TaskInputType[]) => {
     try {
@@ -22,7 +23,7 @@ export function CreatePage() {
         ? shuffleTaskPositions(tasks).filter((t): t is TaskInputType => t !== null)
         : tasks;
 
-      const board = await createBoard(orderedTasks, type);
+      const board = await createBoard(orderedTasks, type, selectedDate);
       navigate(`/board/${board.id}`);
     } catch (error) {
       console.error('Failed to create board:', error);
@@ -32,6 +33,17 @@ export function CreatePage() {
   return (
     <div className="min-h-screen py-8 px-4" style={{ background: 'linear-gradient(135deg, var(--nb-cyan) 0%, var(--nb-lime) 100%)' }}>
       <div className="max-w-md mx-auto">
+        {/* 頂部導航 */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 font-bold text-[var(--nb-black)] hover:opacity-70 transition-opacity"
+          >
+            <span>←</span>
+            <span>返回首頁</span>
+          </button>
+        </div>
+
         {/* 標題 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black text-[var(--nb-black)] mb-3 nb-heading">
@@ -40,6 +52,19 @@ export function CreatePage() {
           <p className="text-base font-bold text-[var(--nb-black)] nb-text">
             {type === 'weekly' ? '輸入你本週要完成的 9 個任務' : '輸入你今天要完成的 9 個任務'}
           </p>
+        </div>
+
+        {/* 日期選擇 - Neo Brutalism Style */}
+        <div className="mb-6 p-5 bg-[var(--nb-white)] nb-border nb-shadow-lg">
+          <label className="block font-black text-[var(--nb-black)] nb-text mb-2">
+            選擇日期
+          </label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full p-3 nb-border font-bold focus:outline-none focus:ring-4 focus:ring-[var(--nb-yellow)] nb-text"
+          />
         </div>
 
         {/* 隨機配置選項 - Neo Brutalism Style */}
