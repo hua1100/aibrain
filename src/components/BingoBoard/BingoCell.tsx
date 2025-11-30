@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import type { Task } from '@/types';
-import { CATEGORIES } from '@/constants';
+import type { Task, CategoryConfig } from '@/types';
+import { CATEGORIES as DEFAULT_CATEGORIES } from '@/constants';
 
 interface BingoCellProps {
   task: Task;
@@ -9,6 +9,7 @@ interface BingoCellProps {
   onEdit?: (task: Task, newName: string) => void;
   isHighlighted?: boolean;
   isLocked?: boolean;
+  categories?: Record<string, CategoryConfig>;
 }
 
 // Tailwind color mapping for animation support
@@ -32,9 +33,16 @@ function resolveColor(color: string): string {
   return TAILWIND_COLORS[color] || color;
 }
 
-export function BingoCell({ task, onClick, onEdit, isHighlighted = false, isLocked = false }: BingoCellProps) {
-  // 使用 fallback 避免 undefined category
-  const category = CATEGORIES[task.category] || CATEGORIES['personal'];
+export function BingoCell({
+  task,
+  onClick,
+  onEdit,
+  isHighlighted = false,
+  isLocked = false,
+  categories = DEFAULT_CATEGORIES
+}: BingoCellProps) {
+  // 使用傳入的 categories 或預設值
+  const category = categories[task.category] || categories['personal'] || DEFAULT_CATEGORIES['personal'];
   const isClickable = !!onClick && !isLocked;
   const [isAnimating, setIsAnimating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

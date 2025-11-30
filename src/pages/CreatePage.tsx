@@ -10,11 +10,11 @@ import type { BoardType } from '@/types';
 
 export function CreatePage() {
   const navigate = useNavigate();
-  const { createBoard, isLoading } = useBoardStore();
+  const { createBoard, isLoading, carryOverTasks } = useBoardStore();
   const [enableShuffle, setEnableShuffle] = useState(false);
   const [searchParams] = useSearchParams();
   const type = (searchParams.get('type') as BoardType) || 'daily';
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  // const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // 移除日期選擇
 
   const handleSubmit = async (tasks: TaskInputType[]) => {
     try {
@@ -30,7 +30,7 @@ export function CreatePage() {
         }
       }
 
-      const board = await createBoard(orderedTasks, type, selectedDate);
+      const board = await createBoard(orderedTasks, type); // 不再傳入日期
       navigate(`/board/${board.id}`);
     } catch (error) {
       console.error('Failed to create board:', error);
@@ -54,25 +54,14 @@ export function CreatePage() {
         {/* 標題 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black text-[var(--nb-black)] mb-3 nb-heading">
-            {type === 'weekly' ? '建立本週 BINGO 板' : '建立今日 BINGO 板'}
+            {type === 'mandalart' ? '建立曼陀羅計畫' : '建立新的一局'}
           </h1>
           <p className="text-base font-bold text-[var(--nb-black)] nb-text">
-            {type === 'weekly' ? '輸入你本週要完成的 9 個任務' : '輸入你今天要完成的 9 個任務'}
+            {type === 'mandalart' ? '設定核心目標與子目標' : '輸入你要挑戰的 9 個任務'}
           </p>
         </div>
 
-        {/* 日期選擇 - Neo Brutalism Style */}
-        <div className="mb-6 p-5 bg-[var(--nb-white)] nb-border nb-shadow-lg">
-          <label className="block font-black text-[var(--nb-black)] nb-text mb-2">
-            選擇日期
-          </label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full p-3 nb-border font-bold focus:outline-none focus:ring-4 focus:ring-[var(--nb-yellow)] nb-text"
-          />
-        </div>
+        {/* 日期選擇已移除 */}
 
         {/* 隨機配置選項 - Neo Brutalism Style */}
         <div className="mb-6 p-5 bg-[var(--nb-yellow)] nb-border nb-shadow-lg">
@@ -94,7 +83,8 @@ export function CreatePage() {
         <TaskInput
           onSubmit={handleSubmit}
           isLoading={isLoading}
-          submitText={type === 'weekly' ? '建立本週 Bingo 板' : '建立今日 Bingo 板'}
+          submitText={type === 'mandalart' ? '建立曼陀羅計畫' : '開始挑戰'}
+          initialTasks={type !== 'mandalart' ? carryOverTasks : undefined}
         />
 
         {/* 提示 - Neo Brutalism Style */}

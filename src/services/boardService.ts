@@ -57,17 +57,7 @@ function mapRowToTask(row: any): Task {
 /**
  * 建立新的 Bingo 板
  */
-/**
- * 取得本地日期字串 (YYYY-MM-DD)
- * 解決時區問題，確保 "今天" 是使用者的當地時間
- */
-function getLocalDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { getLocalDate, getWeekStartDate } from '@/utils/dateUtils';
 
 /**
  * 建立新的 Bingo 板
@@ -83,7 +73,12 @@ export async function createBoard(
   const userId = await getCurrentUserId();
   const boardId = uuidv4();
   // 使用傳入的日期，或是本地今天的日期
-  const boardDate = date || getLocalDate();
+  let boardDate = date || getLocalDate();
+
+  // 如果是每週任務，確保日期是該週的週一
+  if (type === 'weekly') {
+    boardDate = getWeekStartDate(boardDate);
+  }
 
   console.log(`[createBoard] Creating board: type=${type}, date=${boardDate}, userId=${userId}`);
 
@@ -206,15 +201,106 @@ export async function createMandalartSet(
 }
 
 /**
+ * 取得當前進行中的 Board (不分日期)
+ * 排除 Mandalart 類型的板
+ */
+export async function getActiveBoard(): Promise<BingoBoard | undefined> {
+  const userId = await getCurrentUserId();
+
+  console.log(`[getActiveBoard] Querying active board for userId=${userId}`);
+
+  const { data: boardDataArray, error } = await supabase
+    .from('boards')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'in_progress')
+    .neq('type', 'mandalart') // 排除 Mandalart
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error('取得 active board 失敗:', error);
+    throw new Error(`取得 active board 失敗: ${error.message}`);
+  }
+
+  const boardData = boardDataArray?.[0];
+
+  if (!boardData) return undefined;
+
+  // 單獨查詢 tasks
+  const { data: tasksData, error: tasksError } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('board_id', boardData.id)
+    .order('position', { ascending: true });
+
+  if (tasksError) {
+    console.error('取得 tasks 失敗:', tasksError);
+    throw new Error(`取得 tasks 失敗: ${tasksError.message}`);
+  }
+
+  const tasks = (tasksData || []).map(mapRowToTask);
+  return mapRowToBoard(boardData, tasks);
+}
+
+/**
+ * 歸檔 Board (結束當前局)
+ */
+export async function archiveBoard(boardId: string): Promise<void> {
+  const { error } = await supabase
+    .from('boards')
+    .update({
+      status: 'archived' as any, // 暫時強制轉型，等待型別更新生效
+      completed_at: new Date().toISOString(),
+    })
+    .eq('id', boardId);
+
+  if (error) {
+    console.error('歸檔 board 失敗:', error);
+    throw new Error(`歸檔 board 失敗: ${error.message}`);
+  }
+}
+
+/**
+ * 取得 Board 中未完成的任務
+ */
+export async function getUnfinishedTasks(boardId: string): Promise<Task[]> {
+  const { data: tasksData, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('board_id', boardId)
+    .eq('is_completed', false)
+    .order('position', { ascending: true });
+
+  if (error) {
+    console.error('取得未完成任務失敗:', error);
+    throw new Error(`取得未完成任務失敗: ${error.message}`);
+  }
+
+  return (tasksData || []).map(mapRowToTask);
+}
+
+/**
  * 取得指定類型和日期的 Board
+ * @deprecated 改用 getActiveBoard
  */
 export async function getBoard(
   type: BoardType = 'daily',
   date?: string
 ): Promise<BingoBoard | undefined> {
+  // 為了相容性保留，但建議前端改呼叫 getActiveBoard
+  if (type !== 'mandalart') {
+    return getActiveBoard();
+  }
+
   const userId = await getCurrentUserId();
   // 使用傳入的日期，或是本地今天的日期
-  const targetDate = date || getLocalDate();
+  let targetDate = date || getLocalDate();
+
+  // 如果是每週任務，確保日期是該週的週一
+  // if (type === 'weekly') {
+  //   targetDate = getWeekStartDate(targetDate);
+  // }
 
   console.log(`[getBoard] Querying board: type=${type}, date=${targetDate}, userId=${userId}`);
 

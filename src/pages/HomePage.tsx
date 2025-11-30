@@ -7,20 +7,28 @@ import { MandalartView } from '@/components/Mandalart/MandalartView';
 import { useBingoBoard } from '@/hooks/useBingoBoard';
 import { useSound } from '@/hooks/useSound';
 import { useLineDetection } from '@/hooks/useLineDetection';
+import { useSettings } from '@/hooks/useSettings';
 import type { BoardType, Task } from '@/types';
+
+import { useBoardStore } from '@/stores/boardStore';
+import { getUnfinishedTasks } from '@/services/boardService';
 
 export function HomePage() {
   const {
-    board,
+    currentBoard: board,
     isLoading,
-    loadBoard,
+    loadActiveBoard,
+    loadMandalartBoard,
     toggleTask,
     navigateToBoard,
     updateTaskName,
     deleteBoard,
-  } = useBingoBoard();
+    archiveCurrentBoard,
+    setCarryOverTasks,
+  } = useBoardStore();
 
   const { playLineComplete, playFullHouse, playTaskComplete, playTaskUncomplete } = useSound();
+  const { categories } = useSettings();
 
 
 
@@ -41,9 +49,13 @@ export function HomePage() {
     if (boardId) {
       navigateToBoard(boardId);
     } else {
-      loadBoard(boardType);
+      if (boardType === 'mandalart') {
+        loadMandalartBoard();
+      } else {
+        loadActiveBoard();
+      }
     }
-  }, [boardType, loadBoard, boardId, navigateToBoard]);
+  }, [boardType, loadActiveBoard, loadMandalartBoard, boardId, navigateToBoard]);
 
   // 為了避免修改 imports (雖然最好是加 useRef)，我們可以用一個簡單的 state 來記錄是否是第一次載入
   const [isLoaded, setIsLoaded] = useState(false);
@@ -122,6 +134,44 @@ export function HomePage() {
     navigate('/create-mandalart');
   };
 
+  const handleStartNewGame = async () => {
+    // 如果有當前板，先檢查是否有未完成任務
+    if (board) {
+      try {
+        const unfinishedTasks = await getUnfinishedTasks(board.id);
+        if (unfinishedTasks.length > 0) {
+          const confirmRollover = confirm(
+            `您有 ${unfinishedTasks.length} 個未完成任務。要將它們帶入新的一局嗎？\n\n按「確定」帶入，按「取消」捨棄。`
+          );
+
+          if (confirmRollover) {
+            setCarryOverTasks(unfinishedTasks.map(t => ({ name: t.name, category: t.category })));
+          } else {
+            setCarryOverTasks([]);
+          }
+        } else {
+          setCarryOverTasks([]);
+        }
+
+        // 歸檔舊板
+        await archiveCurrentBoard();
+      } catch (error) {
+        console.error('Error handling new game:', error);
+      }
+    } else {
+      setCarryOverTasks([]);
+    }
+
+    navigate('/create');
+  };
+
+  const handleArchiveMandalart = async () => {
+    if (confirm('確定要歸檔目前的曼陀羅計畫嗎？\n歸檔後將無法再編輯，但可以在歷史紀錄中查看。')) {
+      await archiveCurrentBoard();
+      navigate('/create-mandalart');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -163,22 +213,28 @@ export function HomePage() {
 
         {/* 模式切換 Tabs - Neo Brutalism Style */}
         <div className="flex justify-center gap-3 mb-4">
-          {(['daily', 'weekly', 'mandalart'] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setBoardType(type)}
-              className={`
+          <button
+            onClick={() => setBoardType('daily')}
+            className={`
                   px-6 py-3 font-bold text-sm uppercase tracking-wide nb-border nb-shadow transition-all
-                  ${boardType === type
-                  ? 'bg-[var(--nb-yellow)] text-[var(--nb-black)] transform -translate-y-1'
-                  : 'bg-[var(--nb-white)] text-[var(--nb-black)] hover:transform hover:-translate-y-0.5'}
+                  ${boardType === 'daily'
+                ? 'bg-[var(--nb-yellow)] text-[var(--nb-black)] transform -translate-y-1'
+                : 'bg-[var(--nb-white)] text-[var(--nb-black)] hover:transform hover:-translate-y-0.5'}
                 `}
-            >
-              {type === 'daily' && '每日'}
-              {type === 'weekly' && '每週'}
-              {type === 'mandalart' && '曼陀羅'}
-            </button>
-          ))}
+          >
+            當前進度
+          </button>
+          <button
+            onClick={() => setBoardType('mandalart')}
+            className={`
+                  px-6 py-3 font-bold text-sm uppercase tracking-wide nb-border nb-shadow transition-all
+                  ${boardType === 'mandalart'
+                ? 'bg-[var(--nb-yellow)] text-[var(--nb-black)] transform -translate-y-1'
+                : 'bg-[var(--nb-white)] text-[var(--nb-black)] hover:transform hover:-translate-y-0.5'}
+                `}
+          >
+            曼陀羅計畫
+          </button>
         </div>
 
         <p className="text-sm font-bold text-[var(--nb-black)] nb-text">
@@ -193,23 +249,21 @@ export function HomePage() {
         {!board ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {boardType === 'mandalart' ? '尚未建立曼陀羅計畫' : boardType === 'weekly' ? '尚無本週 Bingo 板' : '尚無今日 Bingo 板'}
+              {boardType === 'mandalart' ? '尚未建立曼陀羅計畫' : '尚無進行中的 Bingo 板'}
             </h3>
             <p className="text-gray-500 mb-6">
               {boardType === 'mandalart'
                 ? '建立一個核心目標，並延伸出 8 個子目標來達成它！'
-                : boardType === 'weekly'
-                  ? '開始新的一週，建立你的 Bingo 挑戰吧！'
-                  : '開始新的一天，建立你的 Bingo 挑戰吧！'}
+                : '開始新的一局，建立你的 Bingo 挑戰吧！'}
             </p>
             {boardType === 'mandalart' ? (
               <Button onClick={handleCreateMandalart}>
                 建立曼陀羅計畫
               </Button>
             ) : (
-              <Link to={`/create?type=${boardType}`}>
-                <Button>建立 Bingo 板</Button>
-              </Link>
+              <Button onClick={handleStartNewGame}>
+                開始新的一局
+              </Button>
             )}
           </div>
         ) : (
@@ -264,11 +318,15 @@ export function HomePage() {
                 <p className="text-sm text-green-600 mb-3">你完成了所有任務</p>
                 <div className="flex justify-center gap-2">
                   <ShareButton board={board} />
-                  <Link to={boardType === 'mandalart' ? '/create-mandalart' : '/create'}>
-                    <Button variant="outline" size="sm">
-                      建立新板
+                  {boardType === 'mandalart' ? (
+                    <Button variant="outline" size="sm" onClick={handleArchiveMandalart}>
+                      歸檔計畫
                     </Button>
-                  </Link>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={handleStartNewGame}>
+                      開啟新局
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -294,6 +352,32 @@ export function HomePage() {
                 刪除 Bingo 板
               </Button>
             </div>
+
+            {/* 結束本局按鈕 (Standard Only) */}
+            {board.status === 'in_progress' && boardType !== 'mandalart' && (
+              <div className="mb-6 flex justify-center">
+                <Button
+                  variant="outline"
+                  className="w-full max-w-xs border-dashed border-2 hover:border-solid"
+                  onClick={handleStartNewGame}
+                >
+                  結束本局並開始新的挑戰
+                </Button>
+              </div>
+            )}
+
+            {/* 歸檔按鈕 (Mandalart Only) */}
+            {board.status === 'in_progress' && boardType === 'mandalart' && (
+              <div className="mb-6 flex justify-center">
+                <Button
+                  variant="outline"
+                  className="w-full max-w-xs border-dashed border-red-200 text-red-500 hover:bg-red-50 hover:border-red-500"
+                  onClick={handleArchiveMandalart}
+                >
+                  歸檔此曼陀羅計畫
+                </Button>
+              </div>
+            )}
           </>
         )}
 

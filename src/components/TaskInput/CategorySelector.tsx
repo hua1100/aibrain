@@ -1,23 +1,21 @@
 import { useState, useEffect } from 'react';
-import { getSettings } from '@/services/settingsService';
 import type { CategoryType, CategoryConfig } from '@/types';
+import { CATEGORIES as DEFAULT_CATEGORIES } from '@/constants';
 
 interface CategorySelectorProps {
   value: CategoryType;
   onChange: (category: CategoryType) => void;
   size?: 'sm' | 'md';
+  categories?: CategoryConfig[];
 }
 
-export function CategorySelector({ value, onChange, size = 'md' }: CategorySelectorProps) {
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-
-  useEffect(() => {
-    getSettings().then((settings) => {
-      if (settings?.categories) {
-        setCategories(settings.categories);
-      }
-    });
-  }, []);
+export function CategorySelector({
+  value,
+  onChange,
+  size = 'md',
+  categories = Object.values(DEFAULT_CATEGORIES).filter(c => c.id !== 'free')
+}: CategorySelectorProps) {
+  // 移除內部的 getSettings 調用，改由 props 傳入
 
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',

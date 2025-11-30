@@ -31,9 +31,7 @@ export function LoginPage() {
         }
     };
 
-    const handleGuestMode = () => {
-        navigate('/');
-    };
+
 
     return (
         <div className="min-h-screen py-8 px-4 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--nb-purple) 0%, var(--nb-pink) 100%)' }}>
@@ -106,15 +104,7 @@ export function LoginPage() {
                     </div>
                 </div>
 
-                {/* 訪客模式 */}
-                <div className="mt-6 text-center">
-                    <button
-                        onClick={handleGuestMode}
-                        className="text-sm font-bold text-[var(--nb-black)] hover:underline nb-text"
-                    >
-                        繼續使用訪客模式 (僅本地儲存)
-                    </button>
-                </div>
+                {/* 訪客模式 - 已移除 */}
             </div>
         </div>
     );

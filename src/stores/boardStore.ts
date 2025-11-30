@@ -15,8 +15,14 @@ interface BoardState {
   isLoading: boolean;
   error: string | null;
 
+  // Persistent Board State
+  carryOverTasks: TaskInput[];
+
   // Actions
-  loadTodayBoard: () => Promise<void>;
+  loadTodayBoard: () => Promise<void>; // Deprecated, alias to loadActiveBoard
+
+  loadActiveBoard: () => Promise<void>;
+  loadMandalartBoard: () => Promise<void>;
   loadBoard: (type?: BoardType, date?: string) => Promise<void>;
   createBoard: (tasks: TaskInput[], type?: BoardType, date?: string) => Promise<BingoBoard>;
   createMandalart: (goal: string, subGoals: string[]) => Promise<BingoBoard>;
@@ -26,22 +32,41 @@ interface BoardState {
   checkLines: () => Promise<number[][]>;
   deleteBoard: (boardId: string) => Promise<void>;
   resetBoardProgress: (boardId: string) => Promise<void>;
+  archiveCurrentBoard: () => Promise<void>;
+  setCarryOverTasks: (tasks: TaskInput[]) => void;
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
   currentBoard: null,
   isLoading: false,
   error: null,
+  carryOverTasks: [],
 
   loadTodayBoard: async () => {
+    await get().loadActiveBoard();
+  },
+
+  loadActiveBoard: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { getBoard } = await import('@/services/boardService');
-      const board = await getBoard('daily');
+      const { getActiveBoard } = await import('@/services/boardService');
+      const board = await getActiveBoard();
       set({ currentBoard: board || null, isLoading: false });
     } catch (error) {
       set({ error: '載入失敗', isLoading: false });
-      console.error('Failed to load today board:', error);
+      console.error('Failed to load active board:', error);
+    }
+  },
+
+  loadMandalartBoard: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const { getBoard } = await import('@/services/boardService');
+      const board = await getBoard('mandalart');
+      set({ currentBoard: board || null, isLoading: false });
+    } catch (error) {
+      set({ error: '載入失敗', isLoading: false });
+      console.error('Failed to load mandalart board:', error);
     }
   },
 
@@ -213,5 +238,27 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       console.error('Failed to reset board progress:', error);
       throw error;
     }
+  },
+
+  archiveCurrentBoard: async () => {
+    const { currentBoard } = get();
+    if (!currentBoard) return;
+
+    set({ isLoading: true, error: null });
+    try {
+      const { archiveBoard } = await import('@/services/boardService');
+      await archiveBoard(currentBoard.id);
+
+      // 歸檔後，清除當前板
+      set({ currentBoard: null, isLoading: false });
+    } catch (error) {
+      set({ error: '歸檔失敗', isLoading: false });
+      console.error('Failed to archive board:', error);
+      throw error;
+    }
+  },
+
+  setCarryOverTasks: (tasks: TaskInput[]) => {
+    set({ carryOverTasks: tasks });
   },
 }));

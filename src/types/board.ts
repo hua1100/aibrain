@@ -1,4 +1,4 @@
-export type BoardStatus = 'in_progress' | 'completed' | 'expired';
+export type BoardStatus = 'in_progress' | 'completed' | 'expired' | 'archived';
 
 export type BoardType = 'daily' | 'weekly' | 'mandalart';
 

@@ -3,12 +3,13 @@ import { TaskItem } from './TaskItem';
 import { Button } from '@/components/common';
 import type { TaskInput as TaskInputType, CategoryType, CategoryConfig } from '@/types';
 import { TOTAL_TASKS } from '@/constants';
-import { getSettings } from '@/services/settingsService';
+import { useSettings } from '@/hooks/useSettings';
 
 interface TaskInputProps {
   onSubmit: (tasks: TaskInputType[]) => void;
   isLoading?: boolean;
   submitText?: string;
+  initialTasks?: TaskInputType[];
 }
 
 const createEmptyTask = (category: CategoryType = 'personal'): TaskInputType => ({
@@ -22,19 +23,19 @@ const defaultCategories: CategoryType[] = [
   'personal',
 ];
 
-export function TaskInput({ onSubmit, isLoading = false, submitText = '建立今日 Bingo 板' }: TaskInputProps) {
-  const [tasks, setTasks] = useState<TaskInputType[]>(
-    defaultCategories.map((cat) => createEmptyTask(cat))
-  );
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
-
-  useEffect(() => {
-    getSettings().then((settings) => {
-      if (settings?.categories) {
-        setCategories(settings.categories);
+export function TaskInput({ onSubmit, isLoading = false, submitText = '建立今日 Bingo 板', initialTasks }: TaskInputProps) {
+  const [tasks, setTasks] = useState<TaskInputType[]>(() => {
+    if (initialTasks && initialTasks.length > 0) {
+      // 如果有初始任務，填入並補足剩餘空位
+      const filledTasks = [...initialTasks];
+      while (filledTasks.length < TOTAL_TASKS) {
+        filledTasks.push(createEmptyTask(defaultCategories[filledTasks.length] || 'personal'));
       }
-    });
-  }, []);
+      return filledTasks.slice(0, TOTAL_TASKS);
+    }
+    return defaultCategories.map((cat) => createEmptyTask(cat));
+  });
+  const { categoryOptions } = useSettings();
 
   const handleTaskChange = (index: number, task: TaskInputType) => {
     const newTasks = [...tasks];
@@ -86,7 +87,7 @@ export function TaskInput({ onSubmit, isLoading = false, submitText = '建立今
             index={index}
             task={task}
             onChange={handleTaskChange}
-            categories={categories}
+            categories={categoryOptions}
           />
         ))}
       </div>

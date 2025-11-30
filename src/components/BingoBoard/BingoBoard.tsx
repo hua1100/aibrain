@@ -1,6 +1,6 @@
 import { BingoCell } from './BingoCell';
 import { LineOverlay } from './LineOverlay';
-import type { Task } from '@/types';
+import type { Task, CategoryConfig } from '@/types';
 
 interface BingoBoardProps {
   tasks: Task[];
@@ -9,6 +9,7 @@ interface BingoBoardProps {
   completedLines?: number[][];
   isMandalartRoot?: boolean;
   isMandalartChild?: boolean;
+  categories?: Record<string, CategoryConfig>;
 }
 
 export function BingoBoard({
@@ -17,7 +18,8 @@ export function BingoBoard({
   onEditTask,
   completedLines = [],
   isMandalartRoot = false,
-  isMandalartChild = false
+  isMandalartChild = false,
+  categories
 }: BingoBoardProps) {
   // 按位置排序任務
   const sortedTasks = [...tasks].sort((a, b) => a.position - b.position);
@@ -53,6 +55,7 @@ export function BingoBoard({
             onEdit={onEditTask}
             isHighlighted={isTaskInCompletedLine(task.position)}
             isLocked={isLocked(task)}
+            categories={categories}
           />
         ))}
 
