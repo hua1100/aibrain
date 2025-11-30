@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TaskInput } from '@/components/TaskInput';
 import { useBoardStore } from '@/stores/boardStore';
 import type { TaskInput as TaskInputType } from '@/types';
-import { shuffleTaskPositions } from '@/utils/shuffleUtils';
+import { shuffleTaskPositions, shuffle } from '@/utils/shuffleUtils';
 
 import { useSearchParams } from 'react-router-dom';
 import type { BoardType } from '@/types';
@@ -19,9 +19,16 @@ export function CreatePage() {
   const handleSubmit = async (tasks: TaskInputType[]) => {
     try {
       // 如果啟用隨機配置，洗牌任務順序
-      const orderedTasks = enableShuffle
-        ? shuffleTaskPositions(tasks).filter((t): t is TaskInputType => t !== null)
-        : tasks;
+      let orderedTasks = tasks;
+      if (enableShuffle) {
+        if (tasks.length === 9) {
+          // 9 個任務直接洗牌
+          orderedTasks = shuffle(tasks);
+        } else if (tasks.length === 8) {
+          // 8 個任務使用 shuffleTaskPositions (含中間自由格)
+          orderedTasks = shuffleTaskPositions(tasks).filter((t): t is TaskInputType => t !== null);
+        }
+      }
 
       const board = await createBoard(orderedTasks, type, selectedDate);
       navigate(`/board/${board.id}`);

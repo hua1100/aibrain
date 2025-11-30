@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { CategoryStats, ActivityHeatmap, DailyTaskList } from '@/components/Stats';
+import { CategoryStats, ActivityHeatmap, DailyTaskList, ActivityLegend } from '@/components/Stats';
 import { Button } from '@/components/common';
 import { getCategoryStats, getStatsInRange } from '@/services/statsService';
 import { getCurrentUser } from '@/services/authService';
@@ -13,6 +13,7 @@ export function StatsPage() {
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]);
+  const [chartStartDate, setChartStartDate] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     async function loadStats() {
@@ -25,6 +26,7 @@ export function StatsPage() {
         if (user?.created_at) {
           startDate = user.created_at.split('T')[0];
         }
+        setChartStartDate(startDate);
 
         const endOfYear = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
 
@@ -93,9 +95,13 @@ export function StatsPage() {
 
         {/* 活躍度熱力圖 */}
         <div className="bg-[var(--nb-white)] nb-border nb-shadow-lg p-5 overflow-hidden">
-          <h3 className="text-lg font-black text-[var(--nb-black)] mb-4 nb-heading uppercase">活躍度</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-black text-[var(--nb-black)] nb-heading uppercase">活躍度</h3>
+            <ActivityLegend />
+          </div>
           <ActivityHeatmap
             data={yearStats}
+            startDate={chartStartDate}
             onDateClick={setSelectedDate}
             selectedDate={selectedDate}
           />

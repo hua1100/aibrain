@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getCurrentUser, onAuthStateChange } from '@/services/authService';
 
@@ -19,17 +19,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('AuthProvider rendering');
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const initializedUserRef = useRef<string | null>(null);
 
     useEffect(() => {
-        // 初始化時檢查當前使用者
+        // 初始化時檢查當前使用者 (只設定狀態，不執行初始化，交給 onAuthStateChange)
         getCurrentUser()
-            .then(async (user) => {
+            .then((user) => {
                 setUser(user);
-
-                // 如果有使用者,初始化其數據
-                if (user) {
-                    await initializeUserData(user.id);
-                }
             })
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
@@ -38,11 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const subscription = onAuthStateChange(async (user, event) => {
             setUser(user);
 
-            // 只在登入或初始 Session 時初始化數據
+            // 只在登入或初始 Session 時初始化數據，且避免重複初始化
             if (user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-                await initializeUserData(user.id);
+                if (initializedUserRef.current !== user.id) {
+                    initializedUserRef.current = user.id;
+                    await initializeUserData(user.id);
+                }
             } else if (!user && event === 'SIGNED_OUT') {
                 // 當使用者登出時,清除本地數據
+                initializedUserRef.current = null;
                 await clearLocalData();
             }
 

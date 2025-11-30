@@ -138,9 +138,17 @@ export function HomePage() {
       <div className="max-w-md mx-auto">
         {/* 標題與切換 */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-black text-[var(--nb-black)] nb-heading">
-            BINGO 待辦事項
-          </h1>
+          <div className="flex flex-col">
+            {boardId && (
+              <Link to="/" className="mb-2 inline-flex items-center text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                <span>←</span>
+                <span className="ml-1">返回首頁</span>
+              </Link>
+            )}
+            <h1 className="text-4xl font-black text-[var(--nb-black)] nb-heading">
+              BINGO 待辦事項
+            </h1>
+          </div>
           <Button
             variant="outline"
             size="sm"

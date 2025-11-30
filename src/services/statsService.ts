@@ -133,6 +133,11 @@ export async function updateDailyStats(
       });
 
     if (error) {
+      // 如果是因為重複鍵值 (23505) 導致的錯誤，表示剛好有並發請求建立了記錄
+      // 這時候我們重新執行一次函式，就會進入更新流程
+      if (error.code === '23505') {
+        return updateDailyStats(date, updates);
+      }
       console.error('建立每日統計失敗:', error);
       throw new Error(`建立每日統計失敗: ${error.message}`);
     }
@@ -289,7 +294,7 @@ export async function recordTodayCompletion(
       .eq('user_id', userId)
       .eq('date', today);
   } else {
-    await supabase
+    const { error } = await supabase
       .from('daily_stats')
       .insert({
         user_id: userId,
@@ -306,6 +311,15 @@ export async function recordTodayCompletion(
           [category]: 1,
         },
       });
+
+    if (error) {
+      // 如果是因為重複鍵值 (23505) 導致的錯誤，表示剛好有並發請求建立了記錄
+      // 這時候我們重新執行一次函式，就會進入更新流程
+      if (error.code === '23505') {
+        return recordTodayCompletion(tasksCompleted, linesCompleted, isFullHouse, score, category);
+      }
+      throw error;
+    }
   }
 }
 

@@ -3,3 +3,4 @@ export * from './CategoryStats';
 export * from './StreakDisplay';
 export * from './ActivityHeatmap';
 export * from './DailyTaskList';
+export * from './ActivityLegend';

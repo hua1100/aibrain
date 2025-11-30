@@ -57,6 +57,21 @@ function mapRowToTask(row: any): Task {
 /**
  * 建立新的 Bingo 板
  */
+/**
+ * 取得本地日期字串 (YYYY-MM-DD)
+ * 解決時區問題，確保 "今天" 是使用者的當地時間
+ */
+function getLocalDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * 建立新的 Bingo 板
+ */
 export async function createBoard(
   taskInputs: TaskInput[],
   type: BoardType = 'daily',
@@ -67,7 +82,10 @@ export async function createBoard(
 ): Promise<BingoBoard> {
   const userId = await getCurrentUserId();
   const boardId = uuidv4();
-  const boardDate = date || new Date().toISOString().split('T')[0];
+  // 使用傳入的日期，或是本地今天的日期
+  const boardDate = date || getLocalDate();
+
+  console.log(`[createBoard] Creating board: type=${type}, date=${boardDate}, userId=${userId}`);
 
   // 建立 board 記錄
   const { data: boardData, error: boardError } = await supabase
@@ -195,7 +213,10 @@ export async function getBoard(
   date?: string
 ): Promise<BingoBoard | undefined> {
   const userId = await getCurrentUserId();
-  const targetDate = date || new Date().toISOString().split('T')[0];
+  // 使用傳入的日期，或是本地今天的日期
+  const targetDate = date || getLocalDate();
+
+  console.log(`[getBoard] Querying board: type=${type}, date=${targetDate}, userId=${userId}`);
 
   let query = supabase
     .from('boards')
@@ -452,7 +473,7 @@ async function updateUserStats(userId: string, category: string, points: number)
       .eq('user_id', userId);
   } else {
     // 建立新的使用者統計
-    await supabase
+    const { error } = await supabase
       .from('user_stats')
       .insert({
         user_id: userId,
@@ -460,6 +481,15 @@ async function updateUserStats(userId: string, category: string, points: number)
         total_score: points,
         category_stats: { [category]: 1 },
       } as any);
+
+    if (error) {
+      // 如果是因為重複鍵值 (23505) 導致的錯誤，表示剛好有並發請求建立了記錄
+      // 這時候我們重新執行一次函式，就會進入更新流程
+      if (error.code === '23505') {
+        return updateUserStats(userId, category, points);
+      }
+      throw error;
+    }
   }
 }
 
@@ -490,7 +520,7 @@ async function updateDailyStats(userId: string, category: string, points: number
       .eq('id', dailyStats.id);
   } else {
     // 建立新的每日統計
-    await supabase
+    const { error } = await supabase
       .from('daily_stats')
       .insert({
         user_id: userId,
@@ -507,6 +537,15 @@ async function updateDailyStats(userId: string, category: string, points: number
           [category]: 1,
         },
       });
+
+    if (error) {
+      // 如果是因為重複鍵值 (23505) 導致的錯誤，表示剛好有並發請求建立了記錄
+      // 這時候我們重新執行一次函式，就會進入更新流程
+      if (error.code === '23505') {
+        return updateDailyStats(userId, category, points);
+      }
+      throw error;
+    }
   }
 }
 
