@@ -15,20 +15,29 @@ export async function clearLocalData() {
 export async function initializeUserData(userId: string) {
     console.log(`🔄 初始化用戶 ${userId} 的數據...`);
 
-    // 檢查是否已有 user_stats,如果沒有則等待觸發器建立
-    const { data: stats } = await supabase
-        .from('user_stats')
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1);
+    try {
+        // 檢查是否已有 user_stats,如果沒有則等待觸發器建立
+        const { data: stats, error } = await supabase
+            .from('user_stats')
+            .select('id')
+            .eq('user_id', userId)
+            .limit(1);
 
-    if (!stats || stats.length === 0) {
-        console.log('⏳ 等待 Supabase 觸發器建立初始資料...');
-        // 等待一下讓觸發器執行
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (error) {
+            console.error('❌ 初始化檢查失敗:', error);
+            return; // 如果是網絡錯誤等，暫停初始化
+        }
+
+        if (!stats || stats.length === 0) {
+            console.log('⏳ 等待 Supabase 觸發器建立初始資料...');
+            // 等待一下讓觸發器執行
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        console.log('✅ 用戶數據已初始化');
+    } catch (err) {
+        console.error('❌ 初始化過程發生錯誤:', err);
     }
-
-    console.log('✅ 用戶數據已初始化');
 }
 
 /**

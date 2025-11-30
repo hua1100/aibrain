@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { User, Session } from '@supabase/supabase-js';
+import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 
 export interface AuthState {
     user: User | null;
@@ -77,10 +77,10 @@ export async function getSession() {
 /**
  * 監聽認證狀態變化
  */
-export function onAuthStateChange(callback: (user: User | null) => void) {
+export function onAuthStateChange(callback: (user: User | null, event: AuthChangeEvent) => void) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (_event, session) => {
-            callback(session?.user ?? null);
+        (event, session) => {
+            callback(session?.user ?? null, event);
         }
     );
 

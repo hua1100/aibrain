@@ -35,13 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .finally(() => setLoading(false));
 
         // 監聽認證狀態變化
-        const subscription = onAuthStateChange(async (user) => {
+        const subscription = onAuthStateChange(async (user, event) => {
             setUser(user);
 
-            // 當使用者登入時,初始化數據
-            if (user) {
+            // 只在登入或初始 Session 時初始化數據
+            if (user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
                 await initializeUserData(user.id);
-            } else {
+            } else if (!user && event === 'SIGNED_OUT') {
                 // 當使用者登出時,清除本地數據
                 await clearLocalData();
             }
