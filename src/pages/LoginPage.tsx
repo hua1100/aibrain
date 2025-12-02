@@ -16,15 +16,20 @@ export function LoginPage() {
         setError('');
         setLoading(true);
 
+        console.log('Auth attempt:', { isSignUp, email }); // Debug log
+
         try {
             if (isSignUp) {
+                console.log('Calling signUpWithEmail...');
                 await signUpWithEmail(email, password);
                 alert('註冊成功!請檢查您的信箱以驗證帳號。');
             } else {
+                console.log('Calling signInWithEmail...');
                 await signInWithEmail(email, password);
                 navigate('/');
             }
         } catch (err: any) {
+            console.error('Auth error:', err);
             setError(err.message || '登入失敗,請重試');
         } finally {
             setLoading(false);
